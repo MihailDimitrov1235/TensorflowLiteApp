@@ -1,7 +1,8 @@
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-}
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: "androidx.navigation.safeargs"
+apply plugin: 'de.undercouch.download'
 
 android {
     namespace 'com.example.tensorflowliteapp'
@@ -32,8 +33,16 @@ android {
     }
 }
 
+// import DownloadModels task
+project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+project.ext.TEST_ASSETS_DIR = projectDir.toString() + '/src/androidTest/assets'
+
+// Download models
+apply from:'download_models.gradle'
+
 dependencies {
 
+    implementation 'org.tensorflow:tensorflow-lite-task-vision-play-services:0.4.2'
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
