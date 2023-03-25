@@ -5,6 +5,10 @@ import android.content.AsyncQueryHandler
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
@@ -13,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
@@ -20,10 +25,18 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
 import com.example.tensorflowliteapp.ml.EfficientdetLite0
+import org.tensorflow.lite.support.common.FileUtil
+import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
+import org.tensorflow.lite.support.image.ops.ResizeOp
+import kotlin.math.log
 
 class MainActivity : AppCompatActivity() {
 
+    val paint = Paint()
+
+    lateinit var labels:List<String>
+    lateinit var imageProcessor: ImageProcessor
     lateinit var cameraDevice: CameraDevice
     lateinit var handler: Handler
     lateinit var textureView:TextureView
@@ -43,8 +56,9 @@ class MainActivity : AppCompatActivity() {
 
         getPermission()
 
+        labels = FileUtil.loadLabels(this,"labels.txt")
         model = EfficientdetLite0.newInstance(this)
-
+        imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
         textureView = findViewById(R.id.textureView)
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
             override fun onSurfaceTextureAvailable(
@@ -71,17 +85,42 @@ class MainActivity : AppCompatActivity() {
 
                 bitmap = textureView.bitmap!!
 
-                // Creates inputs for reference.
-                val image = TensorImage.fromBitmap(bitmap)
+                var image = TensorImage.fromBitmap(bitmap)
+                image = imageProcessor.process(image)
 
-                // Runs model inference and gets result.
                 val outputs = model.process(image)
-                val detectionResult = outputs.detectionResultList.get(0)
+                val locations = outputs.locationAsTensorBuffer.floatArray
+//                val detectionResult = outputs.detectionResultList.get(0)
+//                val location = detectionResult.locationAsRectF
+//                val category = detectionResult.categoryAsString
+//                val score = detectionResult.scoreAsFloat
 
-                // Gets result from DetectionResult.
-                val location = detectionResult.locationAsRectF
-                val category = detectionResult.categoryAsString
-                val score = detectionResult.scoreAsFloat
+                var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true)
+
+                val canvas = Canvas(mutableBitmap)
+
+                val bitmapHeight = 1
+                val bitmapWidth = 1
+
+                paint.textSize = bitmapHeight/15f
+                paint.strokeWidth = bitmapWidth/85f
+
+                var idx = 0
+                val threshold = 0.1
+                outputs.detectionResultList.forEachIndexed { index, detectionResult ->
+                    idx = index*4
+                    val location = detectionResult.locationAsRectF
+                    val category = detectionResult.categoryAsString
+                    val score = detectionResult.scoreAsFloat
+                    if (score >= threshold){
+                        paint.setColor(Color.BLUE)
+                        paint.style = Paint.Style.STROKE
+                        canvas.drawRect(RectF(locations.get(idx+1)*bitmapWidth, locations.get(idx)*bitmapHeight, locations.get(idx+3)*bitmapWidth, locations.get(idx+2)*bitmapHeight),paint)
+                        paint.style = Paint.Style.FILL
+                        canvas.drawText(category,location.left*bitmapWidth, location.top*bitmapHeight,paint)
+                    }
+
+                }
 
             }
         }
