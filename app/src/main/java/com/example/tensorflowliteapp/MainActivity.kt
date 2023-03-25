@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.AsyncQueryHandler
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
@@ -14,9 +15,12 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import android.view.TextureView
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
+import com.example.tensorflowliteapp.ml.EfficientdetLite0
+import org.tensorflow.lite.support.image.TensorImage
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,6 +28,9 @@ class MainActivity : AppCompatActivity() {
     lateinit var handler: Handler
     lateinit var textureView:TextureView
     lateinit var cameraManager:CameraManager
+    lateinit var imageView: ImageView
+    lateinit var bitmap: Bitmap
+    lateinit var model: EfficientdetLite0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -32,7 +39,11 @@ class MainActivity : AppCompatActivity() {
         handlerThread.start()
         handler = (Handler(handlerThread.looper))
 
+        imageView = findViewById(R.id.imageView)
+
         getPermission()
+
+        model = EfficientdetLite0.newInstance(this)
 
         textureView = findViewById(R.id.textureView)
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
@@ -57,6 +68,21 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+
+                bitmap = textureView.bitmap!!
+
+                // Creates inputs for reference.
+                val image = TensorImage.fromBitmap(bitmap)
+
+                // Runs model inference and gets result.
+                val outputs = model.process(image)
+                val detectionResult = outputs.detectionResultList.get(0)
+
+                // Gets result from DetectionResult.
+                val location = detectionResult.locationAsRectF
+                val category = detectionResult.categoryAsString
+                val score = detectionResult.scoreAsFloat
+
             }
         }
 
@@ -113,4 +139,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        model.close()
+    }
 }
