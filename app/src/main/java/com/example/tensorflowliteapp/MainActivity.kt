@@ -1,8 +1,10 @@
 package com.example.tensorflowliteapp
 
 import android.content.pm.PackageManager
+import android.graphics.SurfaceTexture
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.TextureView
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
 
@@ -11,7 +13,34 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        getPermission();
+        getPermission()
+
+        val textureView = findViewById<TextureView>(R.id.textureView)
+//        textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
+//            override fun onSurfaceTextureAvailable(
+//                surface: SurfaceTexture,
+//                width: Int,
+//                height: Int
+//            ) {
+//                TODO("Not yet implemented")
+//            }
+//
+//            override fun onSurfaceTextureSizeChanged(
+//                surface: SurfaceTexture,
+//                width: Int,
+//                height: Int
+//            ) {
+//                TODO("Not yet implemented")
+//            }
+//
+//            override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+//                TODO("Not yet implemented")
+//            }
+//
+//            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+//                TODO("Not yet implemented")
+//            }
+//        }
 
     }
 
