@@ -25,6 +25,9 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
 import com.example.tensorflowliteapp.ml.EfficientdetLite0
+import com.example.tensorflowliteapp.ml.EfficientdetLite1
+import com.example.tensorflowliteapp.ml.EfficientdetLite2
+import com.example.tensorflowliteapp.ml.Mobilenetv1
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
@@ -43,7 +46,10 @@ class MainActivity : AppCompatActivity() {
     lateinit var cameraManager:CameraManager
     lateinit var imageView: ImageView
     lateinit var bitmap: Bitmap
-    lateinit var model: EfficientdetLite0
+    lateinit var model0: EfficientdetLite0
+    lateinit var model1: EfficientdetLite1
+    lateinit var model2: EfficientdetLite2
+    lateinit var model: Mobilenetv1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -57,7 +63,10 @@ class MainActivity : AppCompatActivity() {
         getPermission()
 
         labels = FileUtil.loadLabels(this,"labels.txt")
-        model = EfficientdetLite0.newInstance(this)
+        model0 = EfficientdetLite0.newInstance(this)
+        model1 = EfficientdetLite1.newInstance(this)
+        model2 = EfficientdetLite2.newInstance(this)
+        model = Mobilenetv1.newInstance(this)
         imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
         textureView = findViewById(R.id.textureView)
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
@@ -88,7 +97,7 @@ class MainActivity : AppCompatActivity() {
                 var image = TensorImage.fromBitmap(bitmap)
                 image = imageProcessor.process(image)
 
-                val outputs = model.process(image)
+                val outputs = model2.process(image)
                 val locations = outputs.locationAsTensorBuffer.floatArray
 //                val detectionResult = outputs.detectionResultList.get(0)
 //                val location = detectionResult.locationAsRectF
@@ -113,11 +122,18 @@ class MainActivity : AppCompatActivity() {
                     val category = detectionResult.categoryAsString
                     val score = detectionResult.scoreAsFloat
                     if (score >= threshold){
-                        paint.setColor(Color.BLUE)
-                        paint.style = Paint.Style.STROKE
-                        canvas.drawRect(RectF(locations.get(idx+1)*bitmapWidth, locations.get(idx)*bitmapHeight, locations.get(idx+3)*bitmapWidth, locations.get(idx+2)*bitmapHeight),paint)
-                        paint.style = Paint.Style.FILL
-                        canvas.drawText(category,location.left*bitmapWidth, location.top*bitmapHeight,paint)
+                        Log.d("LOCATION",location.left.toString())
+                        Log.d("LOCATION",location.right.toString())
+                        Log.d("LOCATION",location.top.toString())
+                        Log.d("LOCATION",location.bottom.toString())
+                        Log.d("CATEGORY",category)
+                        Log.d("SCORE",score.toString())
+//                        paint.setColor(Color.BLUE)
+//                        paint.style = Paint.Style.STROKE
+//                        canvas.drawRect(RectF(locations.get(idx+1)*bitmapWidth, locations.get(idx)*bitmapHeight, locations.get(idx+3)*bitmapWidth, locations.get(idx+2)*bitmapHeight),paint)
+//                        paint.style = Paint.Style.FILL
+//                        canvas.drawText(category,location.left*bitmapWidth, location.top*bitmapHeight,paint)
+
                     }
 
                 }
