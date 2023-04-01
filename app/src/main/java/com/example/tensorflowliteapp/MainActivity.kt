@@ -1,19 +1,19 @@
 package com.example.tensorflowliteapp
 
 import android.annotation.SuppressLint
-import android.content.AsyncQueryHandler
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.RectF
 import android.graphics.SurfaceTexture
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -21,8 +21,8 @@ import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
-import android.widget.Toast
-import androidx.core.app.ActivityCompat.requestPermissions
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.tensorflowliteapp.ml.EfficientdetLite0
 import com.example.tensorflowliteapp.ml.EfficientdetLite1
@@ -32,12 +32,9 @@ import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
-import kotlin.math.log
 
-class MainActivity : AppCompatActivity() {
-
+class MainActivity : AppCompatActivity(), SensorEventListener {
     val paint = Paint()
-
     lateinit var labels:List<String>
     lateinit var imageProcessor: ImageProcessor
     lateinit var cameraDevice: CameraDevice
@@ -50,13 +47,31 @@ class MainActivity : AppCompatActivity() {
     lateinit var model1: EfficientdetLite1
     lateinit var model2: EfficientdetLite2
     lateinit var model: Mobilenetv1
+    lateinit var number : Number
+    lateinit var textView: TextView
+    lateinit var txtKoltinAccelerometer : TextView
+    private lateinit var sensorManager: SensorManager
+    var sides : Float = 0.0f
+    var updown : Float = 0.0f
+    var thirdPostion : Float = 0.0f
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        setUpSensorSuff()
+        /*sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometerSensor = AccelerometerSensor(sensorManager)
+        accelerometerSensor.register()
+        val acceleration = accelerometerSensor.getAcceleration()
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)*/
+
         val handlerThread = HandlerThread("videoThread")
         handlerThread.start()
         handler = (Handler(handlerThread.looper))
+        textView = findViewById(R.id.textViewText)
+        txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)
 
         imageView = findViewById(R.id.imageView)
 
@@ -69,6 +84,13 @@ class MainActivity : AppCompatActivity() {
         model = Mobilenetv1.newInstance(this)
         imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
         textureView = findViewById(R.id.textureView)
+
+        /*val x = acceleration[0]
+        val y = acceleration[1]
+        val z = acceleration[2]
+        textView.text = "x="+x
+        textView.text = "y="+y
+        textView.text = "z="+z*/
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
             override fun onSurfaceTextureAvailable(
                 surface: SurfaceTexture,
@@ -116,12 +138,16 @@ class MainActivity : AppCompatActivity() {
 
                 var idx = 0
                 val threshold = 0.1
+                var postProcessingObj = PostProcessing();
                 outputs.detectionResultList.forEachIndexed { index, detectionResult ->
                     idx = index*4
                     val location = detectionResult.locationAsRectF
                     val category = detectionResult.categoryAsString
                     val score = detectionResult.scoreAsFloat
+
+
                     if (score >= threshold){
+
                         Log.d("LOCATION",location.left.toString())
                         Log.d("LOCATION",location.right.toString())
                         Log.d("LOCATION",location.top.toString())
@@ -137,13 +163,25 @@ class MainActivity : AppCompatActivity() {
                     }
 
                 }
+                postProcessingObj.postProccessingInfo(outputs,textView);
+
 
             }
         }
 
-        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    }
 
+        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+
+
+    }
+    private fun setUpSensorSuff(){
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+
+        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also {
+            sensorManager.registerListener(this,it,SensorManager.SENSOR_DELAY_FASTEST,SensorManager.SENSOR_DELAY_FASTEST)
+        }
+
+    }
     @SuppressLint("MissingPermission")
     fun openCamera(){
         cameraManager.openCamera(cameraManager.cameraIdList[0],object:CameraDevice.StateCallback(){
@@ -197,5 +235,22 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         model.close()
+        sensorManager.unregisterListener(this)
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if(event?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
+            val sides = event.values[0]
+            val updown = event.values[1]
+            val thirdPostion = event.values[2]
+//            var postProcessingObj = PostProcessing();
+
+            txtKoltinAccelerometer.text = "up/down ${updown.toInt()}\nleft/rigth ${sides.toInt()}\nthirdPOstion ${thirdPostion}"
+            //postProcessingObj.determingPhonePostion(updown,sides,thirdPostion);
+        }
+    }
+
+    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+        return
     }
 }
