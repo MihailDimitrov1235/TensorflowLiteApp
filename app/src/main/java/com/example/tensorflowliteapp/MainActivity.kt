@@ -47,7 +47,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var model1: EfficientdetLite1
     lateinit var model2: EfficientdetLite2
     lateinit var model: Mobilenetv1
-    lateinit var number : Number
     lateinit var textView: TextView
     lateinit var txtKoltinAccelerometer : TextView
     private lateinit var sensorManager: SensorManager
@@ -130,17 +129,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
                 val canvas = Canvas(mutableBitmap)
 
-                val bitmapHeight = 1
-                val bitmapWidth = 1
+                val bitmapHeight = mutableBitmap.height
+                val bitmapWidth = mutableBitmap.width
 
                 paint.textSize = bitmapHeight/15f
                 paint.strokeWidth = bitmapWidth/85f
 
-                var idx = 0
                 val threshold = 0.1
                 var postProcessingObj = PostProcessing();
                 outputs.detectionResultList.forEachIndexed { index, detectionResult ->
-                    idx = index*4
                     val location = detectionResult.locationAsRectF
                     val category = detectionResult.categoryAsString
                     val score = detectionResult.scoreAsFloat
