@@ -3,7 +3,6 @@ package com.example.tensorflowliteapp
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
-import android.widget.TextView
 import com.example.tensorflowliteapp.ml.EfficientdetLite2
 
 
@@ -16,6 +15,7 @@ class PostProcessing :  SensorEventListener {
     var y : Float = 0F
     var z : Float = 0F
 //    var output : Outputs = TODO()
+
     override fun onSensorChanged(event: SensorEvent?) {
         if(event?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
             x = event.values[0]
@@ -32,47 +32,48 @@ class PostProcessing :  SensorEventListener {
         TODO("Not yet implemented")
     }
 
-    fun postProccessingInfo(
-        outputs: EfficientdetLite2.Outputs,
-        textView: TextView
-    ) {
+    fun gridPostion(
+        detectionResult: EfficientdetLite2.DetectionResult
+    ) : Array<Int?> {
         //output = outputs
-        outputs.detectionResultList.forEachIndexed { index, detectionResult ->
+
             val location = detectionResult.locationAsRectF
             val category = detectionResult.categoryAsString
             val score = detectionResult.scoreAsFloat
             val centerObjectX = (location.left+location.right)/2
             val centerObjectY = (location.top+location.bottom)/2
+            val gridCell = arrayOfNulls<Int>(2)
+
 
             //textView.text = "Location:top"+location.top+";\nbottom="+location.bottom+";\nright="+location.right+";\nleft="+location.left+";\n category="+category+
 //                    ";\ncenterObjectX="+centerObjectX+"\ncenterObjectY="+centerObjectY
 
-            if(centerObjectX>0 && centerObjectX<=60){
-                postionBrXText = 1
+            if(centerObjectX>=0 && centerObjectX<=60){
+                gridCell[0] = 0
              //   textView.text = "Po X e mejdu 0 i 60;\ncategory="+category+";\nX="+x+"\nY="+y+"\nZ="+z
             }else if(centerObjectX>60 && centerObjectX<=120){
-                postionBrXText = 2
+                gridCell[0] = 1
             }else if(centerObjectX>120 && centerObjectX<=180){
-                postionBrXText = 3
+                gridCell[0] = 2
             }else if(centerObjectX>180 && centerObjectX<=240){
-                postionBrXText = 4
+                gridCell[0] = 3
             }else if(centerObjectX>240 && centerObjectX<=300){
-                postionBrXText = 5
+                gridCell[0] = 4
             }
-            if(centerObjectY>0 && centerObjectY<=60){
+            if(centerObjectY>=0 && centerObjectY<=60){
               //  textView.text = "Po Y e mejdu 0 i 60;\ncategory="+category
-                postionBrYText = 1
+                gridCell[1] = 0
             }else if(centerObjectY>60 && centerObjectY<=120){
-                postionBrYText = 2
+                gridCell[1] = 1
             }else if(centerObjectY>120 && centerObjectY<=180){
-                postionBrYText = 3
+                gridCell[1] = 2
             }else if(centerObjectY>180 && centerObjectY<=240){
-                postionBrYText = 4
+                gridCell[1] = 3
             }else if(centerObjectY>240 && centerObjectY<=300){
-                postionBrYText = 5
+                gridCell[1] = 4
             }
-
-            var postion = 1
+            return gridCell
+            /*var postion = 1
             if(x>=0 && x<=10){
                 if(z >= 0 && z <= 2.5){
                     postion = 1;
@@ -86,24 +87,20 @@ class PostProcessing :  SensorEventListener {
                 }else if(z>7.5 && z<=10){
                     postion = 4;
                     //return postion;
-                }
-            }
+                }*/
+
             println("x="+x+";y="+y+";z="+z)
-            //textView.text = "Po X e mejdu 0 i 60;\ncategory="+category+";\nX="+x+"\nY="+y+"\nZ="+z
-  //          textView.text = "Location:top"+location.top+";\nbottom="+location.bottom+";\nright="+location.right+";\nleft="+location.left+";\n category="+category+
-    //                ";\ncenterObjectX="+centerObjectX+"\ncenterObjectY="+centerObjectY
-            //if(location.top){
 
-            //}
 
-        }
+
         //val classB = SecondFileTest()
         //textView.text = "Location:top"
 
         //val list = intent.getSerializableExtra("outputs") as ArrayList<String>
         println("hehe")
-        //Toast.makeText(MainActivity, list.joinToString(), Toast.LENGTH_SHORT).show()
     }
+        //Toast.makeText(MainActivity, list.joinToString(), Toast.LENGTH_SHORT).show()
+
     // Определя в каква позиция е телефона и с тези данни се казва къде е предмета, който търсим
     fun determingPhonePostion() {
 
