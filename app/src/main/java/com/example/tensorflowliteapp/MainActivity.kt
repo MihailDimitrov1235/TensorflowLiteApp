@@ -17,36 +17,22 @@ import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.tensorflowliteapp.ml.EfficientdetLite0
-import com.example.tensorflowliteapp.ml.EfficientdetLite1
-import com.example.tensorflowliteapp.ml.EfficientdetLite2
-import com.example.tensorflowliteapp.ml.Mobilenetv1
-import org.tensorflow.lite.support.common.FileUtil
-import org.tensorflow.lite.support.image.ImageProcessor
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.image.ops.ResizeOp
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
     val paint = Paint()
-    lateinit var labels:List<String>
-    lateinit var imageProcessor: ImageProcessor
+    lateinit var objectDetector: objectDetector
     lateinit var cameraDevice: CameraDevice
     lateinit var handler: Handler
     lateinit var textureView:TextureView
     lateinit var cameraManager:CameraManager
     lateinit var imageView: ImageView
     lateinit var bitmap: Bitmap
-    lateinit var model0: EfficientdetLite0
-    lateinit var model1: EfficientdetLite1
-    lateinit var model2: EfficientdetLite2
-    lateinit var model: Mobilenetv1
     lateinit var textView: TextView
     lateinit var txtKoltinAccelerometer : TextView
     private lateinit var sensorManager: SensorManager
@@ -75,15 +61,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         imageView = findViewById(R.id.imageView)
 
         getPermission()
-
-        labels = FileUtil.loadLabels(this,"labels.txt")
-        model0 = EfficientdetLite0.newInstance(this)
-        model1 = EfficientdetLite1.newInstance(this)
-        model2 = EfficientdetLite2.newInstance(this)
-        model = Mobilenetv1.newInstance(this)
-        imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
         textureView = findViewById(R.id.textureView)
-
+        objectDetector = objectDetector(this)
         /*val x = acceleration[0]
         val y = acceleration[1]
         val z = acceleration[2]
@@ -114,19 +93,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
 
                 bitmap = textureView.bitmap!!
-
-                var image = TensorImage.fromBitmap(bitmap)
-                image = imageProcessor.process(image)
-
-                val outputs = model2.process(image)
-                val locations = outputs.locationAsTensorBuffer.floatArray
-//                val detectionResult = outputs.detectionResultList.get(0)
-//                val location = detectionResult.locationAsRectF
-//                val category = detectionResult.categoryAsString
-//                val score = detectionResult.scoreAsFloat
+                val outputs = objectDetector.detect(bitmap)
 
                 var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true)
-
                 val canvas = Canvas(mutableBitmap)
 
                 val bitmapHeight = mutableBitmap.height
@@ -135,32 +104,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 paint.textSize = bitmapHeight/15f
                 paint.strokeWidth = bitmapWidth/85f
 
-                val threshold = 0.1
-                var postProcessingObj = PostProcessing();
-                outputs.detectionResultList.forEachIndexed { index, detectionResult ->
-                    val location = detectionResult.locationAsRectF
-                    val category = detectionResult.categoryAsString
-                    val score = detectionResult.scoreAsFloat
-
-
-                    if (score >= threshold){
-
-                        Log.d("LOCATION",location.left.toString())
-                        Log.d("LOCATION",location.right.toString())
-                        Log.d("LOCATION",location.top.toString())
-                        Log.d("LOCATION",location.bottom.toString())
-                        Log.d("CATEGORY",category)
-                        Log.d("SCORE",score.toString())
-//                        paint.setColor(Color.BLUE)
-//                        paint.style = Paint.Style.STROKE
-//                        canvas.drawRect(RectF(locations.get(idx+1)*bitmapWidth, locations.get(idx)*bitmapHeight, locations.get(idx+3)*bitmapWidth, locations.get(idx+2)*bitmapHeight),paint)
-//                        paint.style = Paint.Style.FILL
-//                        canvas.drawText(category,location.left*bitmapWidth, location.top*bitmapHeight,paint)
-
-                    }
-
-                }
-                postProcessingObj.postProccessingInfo(outputs,textView);
+                var postProcessingObj = PostProcessing()
+                postProcessingObj.postProccessingInfo(outputs,textView)
 
 
             }
@@ -235,7 +180,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        model.close()
+        objectDetector.destroy()
         sensorManager.unregisterListener(this)
     }
 
