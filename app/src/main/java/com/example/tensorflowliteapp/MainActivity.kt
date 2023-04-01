@@ -104,7 +104,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 paint.strokeWidth = bitmapWidth/85f
 
                 var postProcessingObj = PostProcessing()
-                postProcessingObj.postProccessingInfo(outputs,textView)
 
 
             }
