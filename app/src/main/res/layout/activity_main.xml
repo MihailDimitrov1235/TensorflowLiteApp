@@ -6,16 +6,34 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/txtKoltinAccelerometer"
+        android:layout_width="144dp"
+        android:layout_height="183dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="-18dp"
+        android:layout_marginBottom="256dp"
+        android:text="TextView" />
+
     <TextureView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:id="@+id/textureView"
-    />
+        android:layout_width="221dp"
+        android:layout_height="702dp" />
 
     <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:id="@+id/imageView"
-        />
+        android:layout_width="144dp"
+        android:layout_height="520dp" />
+
+    <TextView
+        android:id="@+id/textViewText"
+        android:layout_width="144dp"
+        android:layout_height="183dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="13dp"
+        android:layout_marginBottom="511dp"
+        android:text="TextView" />
 
 </RelativeLayout>
