@@ -216,8 +216,12 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     fun getPermission(){
         val cameraPermision = android.Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(this,cameraPermision) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(arrayOf(cameraPermision),101)
+        val sensorsPermision = android.Manifest.permission.HIGH_SAMPLING_RATE_SENSORS
+        if ((ContextCompat.checkSelfPermission(this,cameraPermision) != PackageManager.PERMISSION_GRANTED)
+            || (ContextCompat.checkSelfPermission(this,sensorsPermision) != PackageManager.PERMISSION_GRANTED)){
+
+            requestPermissions(arrayOf(cameraPermision,sensorsPermision),101)
+
         }
     }
 
