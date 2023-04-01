@@ -1,6 +1,5 @@
 package com.example.tensorflowliteapp
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -11,13 +10,10 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
 import android.widget.TextView
