@@ -26,11 +26,11 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
     val paint = Paint()
-    lateinit var objectDetector: objectDetector
-    lateinit var cameraDevice: CameraDevice
+    lateinit var objectDetector: ObjectDetector
     lateinit var handler: Handler
     lateinit var textureView:TextureView
     lateinit var cameraManager:CameraManager
+    lateinit var cameraHandler: CameraHandler
     lateinit var imageView: ImageView
     lateinit var bitmap: Bitmap
     lateinit var textView: TextView
@@ -57,12 +57,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         handler = (Handler(handlerThread.looper))
         textView = findViewById(R.id.textViewText)
         txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)
-
         imageView = findViewById(R.id.imageView)
+        textureView = findViewById(R.id.textureView)
 
         getPermission()
-        textureView = findViewById(R.id.textureView)
-        objectDetector = objectDetector(this)
+        objectDetector = ObjectDetector(this)
+
+        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        cameraHandler = CameraHandler(imageView,textureView,handler,cameraManager)
+
         /*val x = acceleration[0]
         val y = acceleration[1]
         val z = acceleration[2]
@@ -75,7 +78,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 width: Int,
                 height: Int
             ) {
-                openCamera()
+                cameraHandler.openCamera()
             }
 
             override fun onSurfaceTextureSizeChanged(
@@ -111,10 +114,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
         }
 
-
-        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-
-
     }
     private fun setUpSensorSuff(){
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -124,37 +123,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
 
     }
-    @SuppressLint("MissingPermission")
-    fun openCamera(){
-        cameraManager.openCamera(cameraManager.cameraIdList[0],object:CameraDevice.StateCallback(){
-            override fun onOpened(camera: CameraDevice) {
-                cameraDevice = camera
-                var surfaceTexture = textureView.surfaceTexture
-                var surface = Surface(surfaceTexture)
 
-                var captureRequest = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-                captureRequest.addTarget(surface)
-
-                cameraDevice.createCaptureSession(listOf(surface), object: CameraCaptureSession.StateCallback(){
-                    override fun onConfigured(session: CameraCaptureSession) {
-                        session.setRepeatingRequest(captureRequest.build(),null,null)
-                    }
-
-                    override fun onConfigureFailed(session: CameraCaptureSession) {
-                        TODO("Not yet implemented")
-                    }
-                }, handler)
-            }
-
-            override fun onDisconnected(camera: CameraDevice) {
-                TODO("Not yet implemented")
-            }
-
-            override fun onError(camera: CameraDevice, error: Int) {
-                TODO("Not yet implemented")
-            }
-        },handler)
-    }
 
     fun getPermission(){
         val cameraPermision = android.Manifest.permission.CAMERA

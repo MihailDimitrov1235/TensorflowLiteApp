@@ -11,7 +11,7 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.ResizeOp
 
-class objectDetector {
+class ObjectDetector {
     var imageProcessor: ImageProcessor
     lateinit var labels:List<String>
     lateinit var model0: EfficientdetLite0
