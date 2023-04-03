@@ -48,19 +48,13 @@ import java.util.*
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
     val paint = Paint()
-    lateinit var labels:List<String>
-    lateinit var imageProcessor: ImageProcessor
-    lateinit var cameraDevice: CameraDevice
+    lateinit var objectDetector: ObjectDetector
     lateinit var handler: Handler
     lateinit var textureView:TextureView
     lateinit var cameraManager:CameraManager
+    lateinit var cameraHandler: CameraHandler
     lateinit var imageView: ImageView
     lateinit var bitmap: Bitmap
-    lateinit var model0: EfficientdetLite0
-    lateinit var model1: EfficientdetLite1
-    lateinit var model2: EfficientdetLite2
-    lateinit var model: Mobilenetv1
-    lateinit var number : Number
     lateinit var textView: TextView
     lateinit var txtKoltinAccelerometer : TextView
     private lateinit var sensorManager: SensorManager
@@ -118,16 +112,14 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)
 
         imageView = findViewById(R.id.imageView)
+        textureView = findViewById(R.id.textureView)
 
         getPermission()
 
-        labels = FileUtil.loadLabels(this,"labels.txt")
-        model0 = EfficientdetLite0.newInstance(this)
-        model1 = EfficientdetLite1.newInstance(this)
-        model2 = EfficientdetLite2.newInstance(this)
-        model = Mobilenetv1.newInstance(this)
-        imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
-        textureView = findViewById(R.id.textureView)
+        objectDetector = ObjectDetector(this)
+
+        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        cameraHandler = CameraHandler(imageView,textureView,handler,cameraManager)
 
         /*val x = acceleration[0]
         val y = acceleration[1]
@@ -141,7 +133,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 width: Int,
                 height: Int
             ) {
-                openCamera()
+                cameraHandler.openCamera()
             }
 
             override fun onSurfaceTextureSizeChanged(
@@ -159,64 +151,24 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
 
                 bitmap = textureView.bitmap!!
-
-                var image = TensorImage.fromBitmap(bitmap)
-                image = imageProcessor.process(image)
-
-                val outputs = model2.process(image)
-                val locations = outputs.locationAsTensorBuffer.floatArray
-//                val detectionResult = outputs.detectionResultList.get(0)
-//                val location = detectionResult.locationAsRectF
-//                val category = detectionResult.categoryAsString
-//                val score = detectionResult.scoreAsFloat
+                val outputs = objectDetector.detect(bitmap)
 
                 var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true)
 
                 val canvas = Canvas(mutableBitmap)
 
-                val bitmapHeight = 1
-                val bitmapWidth = 1
+                val bitmapHeight = mutableBitmap.height
+                val bitmapWidth = mutableBitmap.width
 
                 paint.textSize = bitmapHeight/15f
                 paint.strokeWidth = bitmapWidth/85f
 
-                var idx = 0
-                val threshold = 0.1
-                var postProcessingObj = PostProcessing();
-                outputs.detectionResultList.forEachIndexed { index, detectionResult ->
-                    idx = index*4
-                    val location = detectionResult.locationAsRectF
-                    val category = detectionResult.categoryAsString
-                    val score = detectionResult.scoreAsFloat
-
-
-                    if (score >= threshold){
-
-                        Log.d("LOCATION",location.left.toString())
-                        Log.d("LOCATION",location.right.toString())
-                        Log.d("LOCATION",location.top.toString())
-                        Log.d("LOCATION",location.bottom.toString())
-                        Log.d("CATEGORY",category)
-                        Log.d("SCORE",score.toString())
-//                        paint.setColor(Color.BLUE)
-//                        paint.style = Paint.Style.STROKE
-//                        canvas.drawRect(RectF(locations.get(idx+1)*bitmapWidth, locations.get(idx)*bitmapHeight, locations.get(idx+3)*bitmapWidth, locations.get(idx+2)*bitmapHeight),paint)
-//                        paint.style = Paint.Style.FILL
-//                        canvas.drawText(category,location.left*bitmapWidth, location.top*bitmapHeight,paint)
-
-                    }
-
-                }
+                var postProcessingObj = PostProcessing()
                 //postProcessingObj.postProccessingInfo(outputs,textView);
 
 
             }
         }
-
-
-        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-
-
     }
     private fun setUpSensorSuff(){
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -225,37 +177,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             sensorManager.registerListener(this,it,SensorManager.SENSOR_DELAY_FASTEST,SensorManager.SENSOR_DELAY_FASTEST)
         }
 
-    }
-    @SuppressLint("MissingPermission")
-    fun openCamera(){
-        cameraManager.openCamera(cameraManager.cameraIdList[0],object:CameraDevice.StateCallback(){
-            override fun onOpened(camera: CameraDevice) {
-                cameraDevice = camera
-                var surfaceTexture = textureView.surfaceTexture
-                var surface = Surface(surfaceTexture)
-
-                var captureRequest = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-                captureRequest.addTarget(surface)
-
-                cameraDevice.createCaptureSession(listOf(surface), object: CameraCaptureSession.StateCallback(){
-                    override fun onConfigured(session: CameraCaptureSession) {
-                        session.setRepeatingRequest(captureRequest.build(),null,null)
-                    }
-
-                    override fun onConfigureFailed(session: CameraCaptureSession) {
-                        TODO("Not yet implemented")
-                    }
-                }, handler)
-            }
-
-            override fun onDisconnected(camera: CameraDevice) {
-                TODO("Not yet implemented")
-            }
-
-            override fun onError(camera: CameraDevice, error: Int) {
-                TODO("Not yet implemented")
-            }
-        },handler)
     }
     private fun startSpeechRecognition() {
         editTextTextPersonName!!.setText("mode=$mode")
@@ -470,8 +391,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     fun getPermission(){
         val cameraPermision = android.Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(this,cameraPermision) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(arrayOf(cameraPermision),101)
+        val sensorsPermision = android.Manifest.permission.HIGH_SAMPLING_RATE_SENSORS
+        if ((ContextCompat.checkSelfPermission(this,cameraPermision) != PackageManager.PERMISSION_GRANTED)
+            || (ContextCompat.checkSelfPermission(this,sensorsPermision) != PackageManager.PERMISSION_GRANTED)){
+            requestPermissions(arrayOf(cameraPermision,sensorsPermision),101)
         }
     }
 
@@ -488,7 +411,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        model.close()
+        objectDetector.destroy()
         sensorManager.unregisterListener(this)
     }
 
