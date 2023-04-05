@@ -1,5 +1,6 @@
 package com.example.tensorflowliteapp
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -29,7 +30,8 @@ import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.tensorflowliteapp.ml.EfficientdetLite0
@@ -63,24 +65,43 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var number : Number
     lateinit var textView: TextView
     lateinit var txtKoltinAccelerometer : TextView
+    lateinit var editTextTextPersonName : TextView
     private lateinit var sensorManager: SensorManager
     private var mode = 0
     private var textToSpeech: TextToSpeech? = null
-    private var speechRecognizer: SpeechRecognizer? = null
+    private lateinit var speechRecognizer: SpeechRecognizer
     private var recognizerIntent: Intent? = null
+    private var captureRunning = false
     var result: ArrayList<String>? = null
-    var isrecognizable = false
+    //var isrecognizable = false
+    var recognize = false
     var sides : Float = 0.0f
     var updown : Float = 0.0f
     var thirdPostion : Float = 0.0f
     var introductoryWords: String? = null
     var instrucionWords: String? = null
     var mediaPlayer: MediaPlayer? = null
+    var `object`: String? = null
+    var language: String? = null
+    var mPermissionResultLauncher: ActivityResultLauncher<Array<String>>? = null
+    var isrecognizable = false
+    private var isAudioRecordPermissionGranted = false
+    private var isCameraPermissionGranted = false
+    private var isStoragePermissionGranted = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         mode = 1
+        editTextTextPersonName = findViewById(R.id.editTextTextPersonName)
+        mPermissionResultLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ permissions ->
+            isAudioRecordPermissionGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: isAudioRecordPermissionGranted
+            isCameraPermissionGranted = permissions[Manifest.permission.CAMERA] ?: isCameraPermissionGranted
+            isStoragePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: isStoragePermissionGranted
+
+        }
+        requestPermission()
         introductoryWords = "Добър ден Стартира се програма блайнд хелпър. Какво искате да " +
                 "направя за вас. За да разберете повече, кажете думата Инструкции"
         instrucionWords = "Ако искате да намерите даден предмет, трябва да кажете думата намери и" +
@@ -128,6 +149,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         model = Mobilenetv1.newInstance(this)
         imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
         textureView = findViewById(R.id.textureView)
+
 
         /*val x = acceleration[0]
         val y = acceleration[1]
@@ -207,7 +229,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     }
 
                 }
-                //postProcessingObj.postProccessingInfo(outputs,textView);
 
 
             }
@@ -215,8 +236,41 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
 
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        startSpeechRecognition();
+
+    }
 
 
+    private fun requestPermission() {
+        isAudioRecordPermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+        isCameraPermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+        isStoragePermissionGranted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+        val permissionRequest: MutableList<String> = ArrayList()
+        if (!isAudioRecordPermissionGranted) {
+            permissionRequest.add(Manifest.permission.RECORD_AUDIO)
+        }
+        if (!isCameraPermissionGranted) {
+            permissionRequest.add(Manifest.permission.CAMERA)
+        }
+        if (!isStoragePermissionGranted) {
+            permissionRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+        if (!permissionRequest.isEmpty()) {
+            mPermissionResultLauncher!!.launch(permissionRequest.toTypedArray())
+        }
+    }
+
+    fun log(text: String?) {
+        //editTextTextMultiLine.setText(text + " "+ editTextTextMultiLine.getText());
     }
     private fun setUpSensorSuff(){
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -257,8 +311,29 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
         },handler)
     }
+    private class Command     //        public String param;
+        (val templates: Array<String>) {
+        fun match(text: String): Boolean {
+            for (template in templates) {
+                if (text.contains(template)) {
+                    return true
+                }
+            }
+            return false
+        }
+    }
+    companion object {
+        // Това са шаблони за какви команди могат да се разпознаят
+        private val commandLanguage = Command(arrayOf("смени език", " change language"))
+        private val commandStop = Command(arrayOf("стоп", "спри", "стига", "stop"))
+        private val commandInstructions =
+            Command(arrayOf("инструкции", "помощ", "help", "instructions"))
+        private val commandFind = Command(arrayOf("намери", "къде e", "where", "find"))
+        private val commandFindAll = Command(arrayOf("навигирай", "navigate"))
+        private val commandExit = Command(arrayOf("излез от програмата", "излез", "leave"))
+    }
     private fun startSpeechRecognition() {
-        editTextTextPersonName!!.setText("mode=$mode")
+        editTextTextPersonName.setText("mode=$mode")
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this)
@@ -292,113 +367,114 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             }
 
             override fun onResults(results: Bundle) {
-                //editTextShowText.setText(" ");
-                // editTextTextMultiLine.setText("");
                 result = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                if (result!!.size == 0) return
+                val lastCommand = result!![result!!.size - 1].lowercase(Locale.getDefault())
 
-                //editTextTextMultiLine.setText("f"+ result.get(result.size() - 1));
-                //File file = new File("res/");
-                //if (file.exists()) {
-                /*try {
-                    InputStream inputStream = getAssets().open("recognizableoObjects-en.txt");
-                    int size = inputStream.available();
-                    byte[] buffer = new byte[size];
-                    inputStream.read(buffer);
-                    inputStream.close();
-                    String fileContents = new String(buffer);
-                    Toast.makeText(MainActivity.this, "fileContents="+fileContents, Toast.LENGTH_SHORT).show();
-                } catch (Exception e) {
-                    // handle error
-                }*/
-                //}
-                Toast.makeText(
-                    this@MainActivity,
-                    "Vliza v mode 1$result",
-                    Toast.LENGTH_SHORT
-                ).show()
-                // Влиза, когато са се прочели въвеждащите думи
-                if (mode == 1) {
-                    //mediaPlayer.start();
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Vliza v mode 1",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    //soundForListen.start();
-                    if (result!!.contains("инструкции")) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "vliza v proverka",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        speak(instrucionWords)
-                        //
-                        //Toast.makeText(CapturePictureAutomatically.this, "Vliza v razpoznat", Toast.LENGTH_SHORT).show();
-                        //speak("Здравейте, почвам да ви слушам");
-                        editTextTextPersonName!!.setText("result$result")
-                        //mode++;
-                    }
+                // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
+                if (commandFind.match(lastCommand)) {
+                    log("ВЛИЗА В НАМЕРЕН ОБЕКТ------------- ")
 
-                    //Toast.makeText(CapturePictureAutomatically.this, "Vliza v mode 2", Toast.LENGTH_SHORT).show();
-                    val assetManager = assets
-                    try {
-                        val inputStream = assetManager.open("recognizableoObjects-bg.txt")
-                        val reader = BufferedReader(
-                            InputStreamReader(
-                                inputStream,
-                                Charset.forName("windows-1251")
-                            )
+                    `object` = lastCommand
+                    recognize = true
+                }
+                // Ако е казано "инструкции", казва на човека какви функционалности има приложението
+                //log("/" + lastCommand + "/");
+                if (commandInstructions.match(lastCommand)) {
+                    captureRunning = false
+                    //mode = 1
+                    //                  log("instructions");
+                    speak(instrucionWords)
+                }
+                // Спира приложението да снима
+
+                //Toast.makeText(CapturePictureAutomatically.this, "Vliza v mode 2", Toast.LENGTH_SHORT).show();
+
+                //Toast.makeText(CapturePictureAutomatically.this, "Vliza v mode 2", Toast.LENGTH_SHORT).show();
+                val assetManager = assets
+                try {
+                    val inputStream = assetManager.open("recognizableoObjects-bg.txt")
+                    val reader = BufferedReader(
+                        InputStreamReader(
+                            inputStream,
+                            Charset.forName("windows-1251")
                         )
-                        var line: String
-                        while (reader.readLine().also { line = it } != null) {
-                            // do something with the line
-                            //result.contains("намери "+ line)
-                            if (result!!.contains("намери $line")) {
-                                isrecognizable = true
-                                break
-                            }
-                            //editTextTextMultiLine.setText(line+" ");
+                    )
+                    var line: String = ""
+                    while (reader.readLine()?.also { line = it } != null) {
+                        // do something with the line
+                        //result.contains("намери "+ line)
+                        if (result!!.contains("намери $line")) {
+                            isrecognizable = true
+                            break
+                        }
+                        //editTextTextMultiLine.setText(line+" ");
 
-                            //Toast.makeText(this, "lin="+line, Toast.LENGTH_SHORT).show();
-                        }
-                        //editTextTextMultiLine.setText("isrecognizable= "+isrecognizable);
-                        if (isrecognizable == true) {
-                            //soundForListen.interrupt();
-                            //soundForListen.stop();
-                            mediaPlayer!!.isLooping = false
-                            speak("Този предмет може да се открие. Почва търсене")
-                            // Param is optional, to run task on UI thread.
-                            handler = Handler(Looper.getMainLooper())
-                            runnable = object : Runnable {
-                                override fun run() {
-                                    // Do the task...
-                                    capturePhoto()
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        "Започна да прави снимки",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    handler!!.postDelayed(this, 5000)
-                                    // Optional, to repeat the task
-                                }
-                            }
-                            handler!!.postDelayed(runnable as Runnable, 5000)
-                            //                            capturePhoto();
-                            mode++
-                            //speak("Този предмет може да се открие");
-                        } else {
-                            speak("Този предмет не може да се открие")
-                        }
-                        reader.close()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
+                        //Toast.makeText(this, "lin="+line, Toast.LENGTH_SHORT).show();
                     }
+                    //editTextTextMultiLine.setText("isrecognizable= "+isrecognizable);
+                    if (isrecognizable == true) {
+                        //soundForListen.interrupt();
+                        //soundForListen.stop();
+                        mediaPlayer!!.isLooping = false
+                        speak("Този предмет може да се открие. Почва търсене")
+                        isrecognizable = false;
+                        // Param is optional, to run task on UI thread.
+                        handler = Handler(Looper.getMainLooper())
+                        /*runnable = object : Runnable {
+                            override fun run() {
+                                // Do the task...
+                                capturePhoto()
+                                Toast.makeText(
+                                    this@CapturePictureAutomatically,
+                                    "Започна да прави снимки",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                handler.postDelayed(this, 5000)
+                                // Optional, to repeat the task
+                            }
+                        }
+                        handler.postDelayed(runnable, 5000)*/
+                        //                            capturePhoto();
+                        mode++
+                        //speak("Този предмет може да се открие");
+                    } else {
+                        speak("Този предмет не може да се открие")
+                    }
+                    reader.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+                if (commandStop.match(lastCommand)) {
+                    log("СТОП СПРИ ")
+                    recognize = true
+                    captureRunning = false
+                    speak("Спряхте режима. Какво искате да направя за вас?")
+                }
 
-                    //speak("Здравейте, почвам да ви слушам");
-                    //speak("Този предмет може да се открие");
+                // Влиза тук когато се каже думата навигация и започва да ориентира човека какво
+                // има пред него
+                if (commandFindAll.match(lastCommand)) {
+                    log("НАВИГИРА МЕ НАВСЯКЪДЕ")
+                    speak("Пускане на навигация.")
+                    captureRunning = true
+                    `object` = "all"
+                    recognize = false
+                }
+                // Влиза тук когато потребителят иска да излезе от програмата
+                if (commandExit.match(lastCommand)) {
+                    log("ИЗЛЕЗЕ ОТ ПРОГРАМАТА")
+                    System.exit(0)
+                }
+                if (commandLanguage.match(lastCommand)) {
+                    speak("")
+                    if (result!!.contains("български")) {
+                        language = "bg"
+                    } else if (result!!.contains("български")) {
+                        language = "en"
+                    }
                 }
                 speechRecognizer.startListening(recognizerIntent)
-                //Toast.makeText(MainActivity.this, "Tova e rezultata: "+result.get(0), Toast.LENGTH_SHORT).show();
             }
 
             override fun onPartialResults(bundle: Bundle) {
