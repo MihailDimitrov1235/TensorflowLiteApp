@@ -25,7 +25,7 @@ class ObjectDetector {
         model1 = EfficientdetLite1.newInstance(context)
         model2 = EfficientdetLite2.newInstance(context)
         model = Mobilenetv1.newInstance(context)
-        imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
+        imageProcessor = ImageProcessor.Builder().add(ResizeOp(320,320, ResizeOp.ResizeMethod.BILINEAR)).build()
 
     }
 

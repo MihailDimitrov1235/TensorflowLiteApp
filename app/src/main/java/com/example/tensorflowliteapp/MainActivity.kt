@@ -1,6 +1,5 @@
 package com.example.tensorflowliteapp
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,10 +11,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -24,22 +20,12 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
-import android.util.Log
-import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.tensorflowliteapp.ml.EfficientdetLite0
-import com.example.tensorflowliteapp.ml.EfficientdetLite1
-import com.example.tensorflowliteapp.ml.EfficientdetLite2
-import com.example.tensorflowliteapp.ml.Mobilenetv1
-import org.tensorflow.lite.support.common.FileUtil
-import org.tensorflow.lite.support.image.ImageProcessor
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.image.ops.ResizeOp
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -59,44 +45,18 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var txtKoltinAccelerometer : TextView
     private lateinit var sensorManager: SensorManager
     private var mode = 0
-    private var textToSpeech: TextToSpeech? = null
+    lateinit var text2speech: Text2Speech
     private var speechRecognizer: SpeechRecognizer? = null
     private var recognizerIntent: Intent? = null
-    var result: ArrayList<String>? = null
     var isrecognizable = false
     var sides : Float = 0.0f
     var updown : Float = 0.0f
     var thirdPostion : Float = 0.0f
-    var introductoryWords: String? = null
-    var instrucionWords: String? = null
-    var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mode = 1
-        introductoryWords = "Добър ден Стартира се програма блайнд хелпър. Какво искате да " +
-                "направя за вас. За да разберете повече, кажете думата Инструкции"
-        instrucionWords = "Ако искате да намерите даден предмет, трябва да кажете думата намери и" +
-                " след нея да кажете обекта, който търсите. Например казвате Намери човек или " +
-                "казвате търси котка. Друга функция на приложението е да ви навигира, тоест да" +
-                "каже какво има пред вас и да ви предупреди за него. За да влезете в този реажим" +
-                "кажете думата Навигация. В него например приложението ще Ви казва какво да " +
-                "направите, ако има предмет пред вас, за да стигнете вървите безопасно напред."
-        textToSpeech = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val result = textToSpeech!!.setLanguage(Locale.forLanguageTag("bg-BG"))
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e("TTS", "Language not supported")
-                } else {
-                    Log.i("TTS", "TextToSpeech initialized")
-                }
-                speak(introductoryWords)
-            } else {
-                Log.e("TTS", "Initialization failed")
-            }
-        }
-        mediaPlayer = MediaPlayer.create(this, R.raw.beep)
+        text2speech = Text2Speech(this)
         setUpSensorSuff()
         /*sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometerSensor = AccelerometerSensor(sensorManager)
@@ -383,10 +343,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             override fun onEvent(i: Int, bundle: Bundle) {}
         })
         speechRecognizer.startListening(recognizerIntent)
-    }
-
-    private fun speak(text: String?) {
-        textToSpeech!!.speak(text, TextToSpeech.QUEUE_FLUSH, null)
     }
 
     fun getPermission(){
