@@ -43,33 +43,35 @@ class PostProcessing :  SensorEventListener {
             val centerObjectX = (location.left+location.right)/2
             val centerObjectY = (location.top+location.bottom)/2
             val gridCell = arrayOfNulls<Int>(2)
+            val imageWidth = 320
+            val imageHeight = 320
 
 
             //textView.text = "Location:top"+location.top+";\nbottom="+location.bottom+";\nright="+location.right+";\nleft="+location.left+";\n category="+category+
 //                    ";\ncenterObjectX="+centerObjectX+"\ncenterObjectY="+centerObjectY
 
-            if(centerObjectX>=0 && centerObjectX<=60){
+            if(centerObjectX<=imageWidth/5){
                 gridCell[0] = 0
              //   textView.text = "Po X e mejdu 0 i 60;\ncategory="+category+";\nX="+x+"\nY="+y+"\nZ="+z
-            }else if(centerObjectX>60 && centerObjectX<=120){
+            }else if(centerObjectX>imageWidth/5 && centerObjectX<=imageWidth/5*2){
                 gridCell[0] = 1
-            }else if(centerObjectX>120 && centerObjectX<=180){
+            }else if(centerObjectX>imageWidth/5*2 && centerObjectX<=imageWidth/5*3){
                 gridCell[0] = 2
-            }else if(centerObjectX>180 && centerObjectX<=240){
+            }else if(centerObjectX>imageWidth/5*3 && centerObjectX<=imageWidth/5*4){
                 gridCell[0] = 3
-            }else if(centerObjectX>240 && centerObjectX<=300){
+            }else if(centerObjectX>imageWidth/5*4){
                 gridCell[0] = 4
             }
-            if(centerObjectY>=0 && centerObjectY<=60){
+            if(centerObjectY<=imageHeight/5){
               //  textView.text = "Po Y e mejdu 0 i 60;\ncategory="+category
                 gridCell[1] = 0
-            }else if(centerObjectY>60 && centerObjectY<=120){
+            }else if(centerObjectY>imageHeight/5 && centerObjectY<=imageHeight/5*2){
                 gridCell[1] = 1
-            }else if(centerObjectY>120 && centerObjectY<=180){
+            }else if(centerObjectY>imageHeight/5*2 && centerObjectY<=imageHeight/5*3){
                 gridCell[1] = 2
-            }else if(centerObjectY>180 && centerObjectY<=240){
+            }else if(centerObjectY>imageHeight/5*3 && centerObjectY<=imageHeight/5*4){
                 gridCell[1] = 3
-            }else if(centerObjectY>240 && centerObjectY<=300){
+            }else if(centerObjectY>imageHeight/5*4){
                 gridCell[1] = 4
             }
             return gridCell
