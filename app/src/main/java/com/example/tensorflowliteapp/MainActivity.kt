@@ -13,6 +13,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.camera2.CameraManager
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var imageView: ImageView
     lateinit var bitmap: Bitmap
     lateinit var textView: TextView
+    lateinit var text2speech: Text2Speech
     lateinit var txtKoltinAccelerometer : TextView
     lateinit var editTextTextPersonName : TextView
     private lateinit var sensorManager: SensorManager
