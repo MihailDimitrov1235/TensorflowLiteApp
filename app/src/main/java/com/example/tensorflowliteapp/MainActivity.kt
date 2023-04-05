@@ -68,7 +68,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var editTextTextPersonName : TextView
     private lateinit var sensorManager: SensorManager
     private var mode = 0
-    private var textToSpeech: TextToSpeech? = null
+    //private var textToSpeech: TextToSpeech? = null
+    lateinit var textTospeech: Text2Speech
     private lateinit var speechRecognizer: SpeechRecognizer
     private var recognizerIntent: Intent? = null
     private var captureRunning = false
@@ -102,6 +103,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             isStoragePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: isStoragePermissionGranted
 
         }
+        textTospeech = Text2Speech(this)
         requestPermission()
         introductoryWords = "Добър ден Стартира се програма блайнд хелпър. Какво искате да " +
                 "направя за вас. За да разберете повече, кажете думата Инструкции"
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 "каже какво има пред вас и да ви предупреди за него. За да влезете в този реажим" +
                 "кажете думата Навигация. В него например приложението ще Ви казва какво да " +
                 "направите, ако има предмет пред вас, за да стигнете вървите безопасно напред."
-        textToSpeech = TextToSpeech(this) { status ->
+       /* textToSpeech = TextToSpeech(this) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 val result = textToSpeech!!.setLanguage(Locale.forLanguageTag("bg-BG"))
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
@@ -123,7 +125,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             } else {
                 Log.e("TTS", "Initialization failed")
             }
-        }
+        }*/
         mediaPlayer = MediaPlayer.create(this, R.raw.beep)
         setUpSensorSuff()
         /*sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -542,7 +544,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     private fun speak(text: String?) {
-        textToSpeech!!.speak(text, TextToSpeech.QUEUE_FLUSH, null)
+        textTospeech!!.speak(text, TextToSpeech.QUEUE_FLUSH, null)
     }
 
     fun getPermission(){
