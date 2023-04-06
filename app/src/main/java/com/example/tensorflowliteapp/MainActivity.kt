@@ -49,109 +49,65 @@ import java.nio.charset.Charset
 import java.util.*
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
-    val paint = Paint()
-    lateinit var labels:List<String>
-    lateinit var imageProcessor: ImageProcessor
-    lateinit var cameraDevice: CameraDevice
-    lateinit var handler: Handler
-    lateinit var textureView:TextureView
-    lateinit var cameraManager:CameraManager
-    lateinit var imageView: ImageView
-    lateinit var bitmap: Bitmap
-    lateinit var model0: EfficientdetLite0
-    lateinit var model1: EfficientdetLite1
-    lateinit var model2: EfficientdetLite2
-    lateinit var model: Mobilenetv1
-    lateinit var number : Number
-    lateinit var textView: TextView
+
+    //views
     lateinit var txtKoltinAccelerometer : TextView
     lateinit var editTextTextPersonName : TextView
-    private lateinit var sensorManager: SensorManager
-    private var mode = 0
-    //private var textToSpeech: TextToSpeech? = null
-    lateinit var textTospeech: Text2Speech
-    private lateinit var speechRecognizer: SpeechRecognizer
-    private var recognizerIntent: Intent? = null
-    private var captureRunning = false
-    private var isAudioRecordPermissionGranted = false
-    private var isCameraPermissionGranted = false
-    private var isStoragePermissionGranted = false
-    var result: ArrayList<String>? = null
-    //var isrecognizable = false
-    var recognize = false
-    var sides : Float = 0.0f
-    var updown : Float = 0.0f
-    var thirdPostion : Float = 0.0f
-    var introductoryWords: String? = null
-    var instrucionWords: String? = null
-    var mediaPlayer: MediaPlayer? = null
-    var `object`: String? = null
-    var language: String? = null
-    var mPermissionResultLauncher: ActivityResultLauncher<Array<String>>? = null
-    var isrecognizable = false
+    lateinit var textView: TextView
+    lateinit var imageView: ImageView
+    lateinit var textureView:TextureView
 
+    //variables
+    lateinit var labels:List<String>
+    lateinit var bitmap: Bitmap
+    private var mode = 0
+    private var recognizerIntent: Intent? = null
+        //speechRecognition
+        var captureRunning = false
+        var result: ArrayList<String>? = null
+        //var isrecognizable = false
+        var recognize = false
+        var sides : Float = 0.0f
+        var updown : Float = 0.0f
+        var thirdPostion : Float = 0.0f
+        var `object`: String? = null
+        var isrecognizable = false
+
+    //objects
+    lateinit var objectDetector: ObjectDetector
+    lateinit var handler: Handler
+    lateinit var sensorManager: SensorManager
+    lateinit var textToSpeech: Text2Speech
+    lateinit var speechRecognizer: SpeechRecognizer
+    val paint = Paint()
+
+        //camera
+        lateinit var cameraHandler: CameraHandler
+        lateinit var cameraManager:CameraManager
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         mode = 1
-        editTextTextPersonName = findViewById(R.id.editTextTextPersonName)
-        mPermissionResultLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ permissions ->
-            isAudioRecordPermissionGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: isAudioRecordPermissionGranted
-            isCameraPermissionGranted = permissions[Manifest.permission.CAMERA] ?: isCameraPermissionGranted
-            isStoragePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: isStoragePermissionGranted
-
-        }
-        textTospeech = Text2Speech(this)
-        requestPermission()
-        introductoryWords = "Добър ден Стартира се програма блайнд хелпър. Какво искате да " +
-                "направя за вас. За да разберете повече, кажете думата Инструкции"
-        instrucionWords = "Ако искате да намерите даден предмет, трябва да кажете думата намери и" +
-                " след нея да кажете обекта, който търсите. Например казвате Намери човек или " +
-                "казвате търси котка. Друга функция на приложението е да ви навигира, тоест да" +
-                "каже какво има пред вас и да ви предупреди за него. За да влезете в този реажим" +
-                "кажете думата Навигация. В него например приложението ще Ви казва какво да " +
-                "направите, ако има предмет пред вас, за да стигнете вървите безопасно напред."
-       /* textToSpeech = TextToSpeech(this) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val result = textToSpeech!!.setLanguage(Locale.forLanguageTag("bg-BG"))
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e("TTS", "Language not supported")
-                } else {
-                    Log.i("TTS", "TextToSpeech initialized")
-                }
-                speak(introductoryWords)
-            } else {
-                Log.e("TTS", "Initialization failed")
-            }
-        }*/
-        mediaPlayer = MediaPlayer.create(this, R.raw.beep)
+        getPermission(this)
         setUpSensorSuff()
-        /*sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        accelerometerSensor = AccelerometerSensor(sensorManager)
-        accelerometerSensor.register()
-        val acceleration = accelerometerSensor.getAcceleration()
-        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)*/
 
+        textView = findViewById(R.id.textViewText)
+        txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)
+        imageView = findViewById(R.id.imageView)
+        textureView = findViewById(R.id.textureView)
+        editTextTextPersonName = findViewById(R.id.editTextTextPersonName)
+
+        objectDetector = ObjectDetector(this)
+        textToSpeech = Text2Speech(this)
         val handlerThread = HandlerThread("videoThread")
         handlerThread.start()
         handler = (Handler(handlerThread.looper))
-        textView = findViewById(R.id.textViewText)
-        txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)
-
-        imageView = findViewById(R.id.imageView)
-
-        getPermission()
 
         labels = FileUtil.loadLabels(this,"labels.txt")
-        model0 = EfficientdetLite0.newInstance(this)
-        model1 = EfficientdetLite1.newInstance(this)
-        model2 = EfficientdetLite2.newInstance(this)
-        model = Mobilenetv1.newInstance(this)
-        imageProcessor = ImageProcessor.Builder().add(ResizeOp(300,300, ResizeOp.ResizeMethod.BILINEAR)).build()
-        textureView = findViewById(R.id.textureView)
+        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        cameraHandler = CameraHandler(imageView,textureView,handler,cameraManager)
 
 
         /*val x = acceleration[0]
@@ -160,13 +116,14 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         textView.text = "x="+x
         textView.text = "y="+y
         textView.text = "z="+z*/
+
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
             override fun onSurfaceTextureAvailable(
                 surface: SurfaceTexture,
                 width: Int,
                 height: Int
             ) {
-                openCamera()
+                cameraHandler.openCamera()
             }
 
             override fun onSurfaceTextureSizeChanged(
@@ -184,92 +141,23 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
             override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
 
                 bitmap = textureView.bitmap!!
-
-                var image = TensorImage.fromBitmap(bitmap)
-                image = imageProcessor.process(image)
-
-                val outputs = model2.process(image)
-                val locations = outputs.locationAsTensorBuffer.floatArray
-//                val detectionResult = outputs.detectionResultList.get(0)
-//                val location = detectionResult.locationAsRectF
-//                val category = detectionResult.categoryAsString
-//                val score = detectionResult.scoreAsFloat
+                val outputs = objectDetector.detect(bitmap)
 
                 var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true)
-
                 val canvas = Canvas(mutableBitmap)
 
-                val bitmapHeight = 1
-                val bitmapWidth = 1
+                val bitmapHeight = bitmap.height
+                val bitmapWidth = bitmap.width
 
                 paint.textSize = bitmapHeight/15f
                 paint.strokeWidth = bitmapWidth/85f
 
-                var idx = 0
                 val threshold = 0.1
                 var postProcessingObj = PostProcessing();
-                outputs.detectionResultList.forEachIndexed { index, detectionResult ->
-                    idx = index*4
-                    val location = detectionResult.locationAsRectF
-                    val category = detectionResult.categoryAsString
-                    val score = detectionResult.scoreAsFloat
-
-
-                    if (score >= threshold){
-
-                        Log.d("LOCATION",location.left.toString())
-                        Log.d("LOCATION",location.right.toString())
-                        Log.d("LOCATION",location.top.toString())
-                        Log.d("LOCATION",location.bottom.toString())
-                        Log.d("CATEGORY",category)
-                        Log.d("SCORE",score.toString())
-//                        paint.setColor(Color.BLUE)
-//                        paint.style = Paint.Style.STROKE
-//                        canvas.drawRect(RectF(locations.get(idx+1)*bitmapWidth, locations.get(idx)*bitmapHeight, locations.get(idx+3)*bitmapWidth, locations.get(idx+2)*bitmapHeight),paint)
-//                        paint.style = Paint.Style.FILL
-//                        canvas.drawText(category,location.left*bitmapWidth, location.top*bitmapHeight,paint)
-
-                    }
-
-                }
-
-
             }
         }
-
-
-        cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
         startSpeechRecognition();
 
-    }
-
-
-    private fun requestPermission() {
-        isAudioRecordPermissionGranted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED
-        isCameraPermissionGranted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
-        isStoragePermissionGranted = ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
-        val permissionRequest: MutableList<String> = ArrayList()
-        if (!isAudioRecordPermissionGranted) {
-            permissionRequest.add(Manifest.permission.RECORD_AUDIO)
-        }
-        if (!isCameraPermissionGranted) {
-            permissionRequest.add(Manifest.permission.CAMERA)
-        }
-        if (!isStoragePermissionGranted) {
-            permissionRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-        if (!permissionRequest.isEmpty()) {
-            mPermissionResultLauncher!!.launch(permissionRequest.toTypedArray())
-        }
     }
 
     fun log(text: String?) {
@@ -283,59 +171,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         }
 
     }
-    @SuppressLint("MissingPermission")
-    fun openCamera(){
-        cameraManager.openCamera(cameraManager.cameraIdList[0],object:CameraDevice.StateCallback(){
-            override fun onOpened(camera: CameraDevice) {
-                cameraDevice = camera
-                var surfaceTexture = textureView.surfaceTexture
-                var surface = Surface(surfaceTexture)
-
-                var captureRequest = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-                captureRequest.addTarget(surface)
-
-                cameraDevice.createCaptureSession(listOf(surface), object: CameraCaptureSession.StateCallback(){
-                    override fun onConfigured(session: CameraCaptureSession) {
-                        session.setRepeatingRequest(captureRequest.build(),null,null)
-                    }
-
-                    override fun onConfigureFailed(session: CameraCaptureSession) {
-                        TODO("Not yet implemented")
-                    }
-                }, handler)
-            }
-
-            override fun onDisconnected(camera: CameraDevice) {
-                TODO("Not yet implemented")
-            }
-
-            override fun onError(camera: CameraDevice, error: Int) {
-                TODO("Not yet implemented")
-            }
-        },handler)
-    }
-    private class Command     //        public String param;
-        (val templates: Array<String>) {
-        fun match(text: String): Boolean {
-            for (template in templates) {
-                if (text.contains(template)) {
-                    return true
-                }
-            }
-            return false
-        }
-    }
-    companion object {
-        // Това са шаблони за какви команди могат да се разпознаят
-        private val commandLanguage = Command(arrayOf("смени език", " change language"))
-        private val commandStop = Command(arrayOf("стоп", "спри", "стига", "stop"))
-        private val commandInstructions =
-            Command(arrayOf("инструкции", "помощ", "help", "instructions"))
-        private val commandFind = Command(arrayOf("намери", "къде e", "where", "find"))
-        private val commandFindAll = Command(arrayOf("навигирай", "navigate"))
-        private val commandExit = Command(arrayOf("излез от програмата", "излез", "leave"))
-    }
     private fun startSpeechRecognition() {
+
+        val languageCommand =
+            Command(arrayOf("смени език", " change language"))
+        val stopCommand = Command(arrayOf("стоп", "спри", "стига", "stop"))
+        val instructionsCommand =
+            Command(arrayOf("инструкции", "помощ", "help", "instructions"))
+        val findCommand =
+            Command(arrayOf("намери", "къде e", "where", "find"))
+        val findAllCommand = Command(arrayOf("навигирай", "navigate"))
+        val exitCommand =
+            Command(arrayOf("излез от програмата", "излез", "leave"))
+
         editTextTextPersonName.setText("mode=$mode")
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
@@ -375,7 +223,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 val lastCommand = result!![result!!.size - 1].lowercase(Locale.getDefault())
 
                 // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
-                if (commandFind.match(lastCommand)) {
+                if (findCommand.match(lastCommand)) {
                     log("ВЛИЗА В НАМЕРЕН ОБЕКТ------------- ")
 
                     `object` = lastCommand
@@ -383,11 +231,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 }
                 // Ако е казано "инструкции", казва на човека какви функционалности има приложението
                 //log("/" + lastCommand + "/");
-                if (commandInstructions.match(lastCommand)) {
+                if (instructionsCommand.match(lastCommand)) {
                     captureRunning = false
                     //mode = 1
                     //                  log("instructions");
-                    speak(instrucionWords)
+                    textToSpeech.speak("",true)
                 }
                 // Спира приложението да снима
 
@@ -419,8 +267,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                     if (isrecognizable == true) {
                         //soundForListen.interrupt();
                         //soundForListen.stop();
-                        mediaPlayer!!.isLooping = false
-                        speak("Този предмет може да се открие. Почва търсене")
+                        textToSpeech.speak("Този предмет може да се открие. Почва търсене")
                         isrecognizable = false;
                         // Param is optional, to run task on UI thread.
                         handler = Handler(Looper.getMainLooper())
@@ -442,35 +289,35 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                         mode++
                         //speak("Този предмет може да се открие");
                     } else {
-                        speak("Този предмет не може да се открие")
+                        textToSpeech.speak("Този предмет не може да се открие")
                     }
                     reader.close()
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
-                if (commandStop.match(lastCommand)) {
+                if (stopCommand.match(lastCommand)) {
                     log("СТОП СПРИ ")
                     recognize = true
                     captureRunning = false
-                    speak("Спряхте режима. Какво искате да направя за вас?")
+                    textToSpeech.speak("Спряхте режима. Какво искате да направя за вас?")
                 }
 
                 // Влиза тук когато се каже думата навигация и започва да ориентира човека какво
                 // има пред него
-                if (commandFindAll.match(lastCommand)) {
+                if (findAllCommand.match(lastCommand)) {
                     log("НАВИГИРА МЕ НАВСЯКЪДЕ")
-                    speak("Пускане на навигация.")
+                    textToSpeech.speak("Пускане на навигация.")
                     captureRunning = true
                     `object` = "all"
                     recognize = false
                 }
                 // Влиза тук когато потребителят иска да излезе от програмата
-                if (commandExit.match(lastCommand)) {
+                if (exitCommand.match(lastCommand)) {
                     log("ИЗЛЕЗЕ ОТ ПРОГРАМАТА")
                     System.exit(0)
                 }
-                if (commandLanguage.match(lastCommand)) {
-                    speak("")
+                if (languageCommand.match(lastCommand)) {
+                    textToSpeech.speak("")
                     if (result!!.contains("български")) {
                         language = "bg"
                     } else if (result!!.contains("български")) {
@@ -543,16 +390,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         speechRecognizer.startListening(recognizerIntent)
     }
 
-    private fun speak(text: String?) {
-        textTospeech!!.speak(text, TextToSpeech.QUEUE_FLUSH, null)
-    }
 
-    fun getPermission(){
-        val cameraPermision = android.Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(this,cameraPermision) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(arrayOf(cameraPermision),101)
-        }
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -561,13 +399,13 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
-            getPermission();
+            getPermission(this);
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        model.close()
+        objectDetector.destroy()
         sensorManager.unregisterListener(this)
     }
 

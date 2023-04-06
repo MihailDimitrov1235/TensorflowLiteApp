@@ -33,7 +33,11 @@ class Text2Speech(context: Context) {
             }
         })
     }
-    fun speak(text: String?, queueFlush: Int, nothing: Nothing?){
-        textToSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null,"")
+    fun speak(text: String?, instructions: Boolean = false){
+        if (instructions){
+            textToSpeech.speak(instrucionWords, TextToSpeech.QUEUE_FLUSH, null, "")
+        }else {
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
+        }
     }
 }
