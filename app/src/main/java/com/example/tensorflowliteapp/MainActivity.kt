@@ -60,9 +60,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     //variables
     lateinit var labels:List<String>
     lateinit var bitmap: Bitmap
-    private var mode = 0
-    private var recognizerIntent: Intent? = null
         //speechRecognition
+        var language = "bg"
+        var mode = 0
+        var recognizerIntent: Intent? = null
         var captureRunning = false
         var result: ArrayList<String>? = null
         //var isrecognizable = false
