@@ -1,8 +1,5 @@
 package com.example.tensorflowliteapp
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,40 +11,16 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.camera2.CameraCaptureSession
-import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
-import android.os.Looper
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
-import android.speech.tts.TextToSpeech
-import android.util.Log
-import android.view.Surface
 import android.view.TextureView
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.tensorflowliteapp.ml.EfficientdetLite0
-import com.example.tensorflowliteapp.ml.EfficientdetLite1
-import com.example.tensorflowliteapp.ml.EfficientdetLite2
-import com.example.tensorflowliteapp.ml.Mobilenetv1
 import org.tensorflow.lite.support.common.FileUtil
-import org.tensorflow.lite.support.image.ImageProcessor
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.image.ops.ResizeOp
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.nio.charset.Charset
 import java.util.*
 
 class MainActivity : AppCompatActivity(), SensorEventListener {
@@ -65,16 +38,11 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         //speechRecognition
         var language = "bg"
         var mode = 0
-        var recognizerIntent: Intent? = null
         var captureRunning = false
-        var result: ArrayList<String>? = null
-        //var isrecognizable = false
         var recognize = false
         var sides : Float = 0.0f
         var updown : Float = 0.0f
         var thirdPostion : Float = 0.0f
-        var `object`: String? = null
-        var isrecognizable = false
 
     //objects
     lateinit var objectDetector: ObjectDetector

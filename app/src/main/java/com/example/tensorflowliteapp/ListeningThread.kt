@@ -3,22 +3,16 @@ package com.example.tensorflowliteapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import android.util.Log
-import org.tensorflow.lite.support.common.FileUtil
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
-import java.nio.charset.Charset
 import java.util.*
 
 class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<String>) : Runnable{
     val context = context
     val text2Speech = text2Speech
+    val translator = Translator()
     val labels = labels
 
     var look4object = ""
@@ -80,7 +74,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<S
                 if (findCommand.match(lastCommand)) {
                     log("ВЛИЗА В НАМЕРЕН ОБЕКТ------------- ")
 
-                    look4object = lastCommand
+                    look4object = translator.recognizeObject(lastCommand).toString()
 //                    recognize = true
                 }
                 // Ако е казано "инструкции", казва на човека какви функционалности има приложението
@@ -98,39 +92,20 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<S
                 //Toast.makeText(CapturePictureAutomatically.this, "Vliza v mode 2", Toast.LENGTH_SHORT).show();
 //                val assetManager = assets
                 try {
-                    for (i in labels){
-                        if (result!!.contains("намери " + i)){
+                        if (look4object!=null){
                             isRecognisable = true
-                            break
                         }
-                    }
                     //editTextTextMultiLine.setText("isrecognizable= "+isrecognizable);
                     if (isRecognisable == true) {
                         //soundForListen.interrupt();
                         //soundForListen.stop();
-                        text2Speech.speak("Този предмет може да се открие. Почва търсене")
+                        text2Speech.speak(translator.translate("This object can be found. Starting search",language))
                         isRecognisable = false;
-                        // Param is optional, to run task on UI thread.
-//                        handler = Handler(Looper.getMainLooper())
-                        /*runnable = object : Runnable {
-                            override fun run() {
-                                // Do the task...
-                                capturePhoto()
-                                Toast.makeText(
-                                    this@CapturePictureAutomatically,
-                                    "Започна да прави снимки",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                handler.postDelayed(this, 5000)
-                                // Optional, to repeat the task
-                            }
-                        }
-                        handler.postDelayed(runnable, 5000)*/
                         //                            capturePhoto();
 //                        mode++
                         //speak("Този предмет може да се открие");
                     } else {
-                        text2Speech.speak("Този предмет не може да се открие")
+                        text2Speech.speak(translator.translate("This object can be found.", language))
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
@@ -138,14 +113,14 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<S
                 if (stopCommand.match(lastCommand)) {
                     log("СТОП СПРИ ")
                     recognize = true
-                    text2Speech.speak("Спряхте режима. Какво искате да направя за вас?")
+                    text2Speech.speak(translator.translate("Mode is stopped. What is your next command?", language))
                 }
 
                 // Влиза тук когато се каже думата навигация и започва да ориентира човека какво
                 // има пред него
                 if (findAllCommand.match(lastCommand)) {
                     log("НАВИГИРА МЕ НАВСЯКЪДЕ")
-                    text2Speech.speak("Пускане на навигация.")
+                    text2Speech.speak(translator.translate("Starting navigation", language))
                     look4object = "all"
                     recognize = false
                 }
@@ -156,10 +131,12 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<S
                 }
                 if (languageCommand.match(lastCommand)) {
                     text2Speech.speak("")
-                    if (result!!.contains("български")) {
+                    if (lastCommand.contains("българ") || lastCommand.contains("bulgarian")) {
                         language = "bg"
-                    } else if (result!!.contains("български")) {
+                        text2Speech.speak("Сменяне на езика на български")
+                    } else if (lastCommand.contains("англи") || lastCommand.contains("english")) {
                         language = "en"
+                        text2Speech.speak("Changing language to english")
                     }
                 }
                 speechRecognizer.startListening(recognizerIntent)
@@ -167,60 +144,6 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<S
 
             override fun onPartialResults(bundle: Bundle) {
                 val matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                if (matches != null) {
-                    val match = matches[matches.size - 1]
-                    //if(match.length() > 12) match = match.substring(match.length() - 12);
-                    // editTextTextMultiLine.setText("p"+ match);
-/*                    Toast.makeText(MainActivity.this, "Vliza v onPartialResults", Toast.LENGTH_SHORT).show();
-                    if(mode == 1){
-                        Toast.makeText(MainActivity.this, "Vliza v mode 1", Toast.LENGTH_SHORT).show();
-                        if(matches.contains("хей помощник") || matches.contains("hey pomoshtnik")){
-                            Toast.makeText(MainActivity.this, "Vliza v razpoznat", Toast.LENGTH_SHORT).show();
-                            speak("Здравейте, почвам да ви слушам");
-                            mode++;
-                        }
-                    }else if (mode == 2){
-                        Toast.makeText(MainActivity.this, "Vliza v mode 2", Toast.LENGTH_SHORT).show();
-                        boolean isrecognizable = false;
-                        AssetManager assetManager = getAssets();
-                        try{
-                            InputStream inputStream = assetManager.open("recognizableoObjects-bg.txt");
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream,Charset.forName("windows-1251")));
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                // do something with the line
-                                if(matches.contains(line)){
-                                    isrecognizable = true;
-                                    break;
-
-                                }
-                                editTextTextMultiLine.setText(line+" ");
-                                //Toast.makeText(this, "lin="+line, Toast.LENGTH_SHORT).show();
-                            }
-                            editTextTextMultiLine.setText("isrecognizable="+isrecognizable);
-                            if(isrecognizable){
-                                textToSpeech.speak("Този предмет може да се открие", TextToSpeech.QUEUE_FLUSH, null);
-                                mode++;
-                                //speak("Този предмет може да се открие");
-                            }else{
-                                textToSpeech.speak("Този предмет не може да се открие", TextToSpeech.QUEUE_FLUSH, null);
-                                //speak("Този предмет не може да се открие");
-                            }
-                            reader.close();
-                        }catch(IOException e){
-                            e.printStackTrace();
-                        }
-
-
-                        speak("Здравейте, почвам да ви слушам");
-
-                    }
-
-
-                    / *for(String s : matches) {
-                        editTextShowText.setText("word: "+s);
-                    }*/
-                }
             }
 
             override fun onEvent(i: Int, bundle: Bundle) {}
