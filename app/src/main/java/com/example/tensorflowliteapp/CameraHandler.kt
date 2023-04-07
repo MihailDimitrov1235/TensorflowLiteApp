@@ -11,27 +11,11 @@ import android.view.TextureView
 import android.widget.ImageView
 
 class CameraHandler {
-
-    lateinit var cameraDevice: CameraDevice
-    var cameraManager: CameraManager
-    var textureView:TextureView
-    var imageView: ImageView
-    var handler: Handler
-
-
-    constructor(imageView: ImageView, textureView: TextureView, handler: Handler, cameraManager: CameraManager){
-        this.imageView = imageView
-        this.textureView = textureView
-        this.handler = handler
-        this.cameraManager = cameraManager
-    }
-
-
     @SuppressLint("MissingPermission")
-    fun openCamera(){
+    fun openCamera(cameraManager: CameraManager, textureView:TextureView, handler: Handler){
         cameraManager.openCamera(cameraManager.cameraIdList[0],object: CameraDevice.StateCallback(){
             override fun onOpened(camera: CameraDevice) {
-                cameraDevice = camera
+                var cameraDevice = camera
                 var surfaceTexture = textureView.surfaceTexture
                 var surface = Surface(surfaceTexture)
 
