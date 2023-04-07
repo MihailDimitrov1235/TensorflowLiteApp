@@ -85,7 +85,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     val paint = Paint()
 
         //camera
-        lateinit var cameraHandler: CameraHandler
         lateinit var cameraManager:CameraManager
 
 
@@ -111,7 +110,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
         labels = FileUtil.loadLabels(this,"labels.txt")
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        cameraHandler = CameraHandler()
 
         listeningThread = ListeningThread(this, textToSpeech, labels)
         /*val x = acceleration[0]
@@ -127,7 +125,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 width: Int,
                 height: Int
             ) {
-                cameraHandler.openCamera(cameraManager,textureView,handler)
+                openCamera(cameraManager,textureView,handler)
             }
 
             override fun onSurfaceTextureSizeChanged(
