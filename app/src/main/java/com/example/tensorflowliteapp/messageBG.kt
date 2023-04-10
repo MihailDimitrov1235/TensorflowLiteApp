@@ -26,7 +26,7 @@ class messageBG {
                      if(brL > 1){
                          result += translator.plural[detectionResult.categoryAsString]
                      }else{
-                         result += translator.translateObjectToBg[detectionResult.categoryAsString]
+                         result += translator.translateToBG[detectionResult.categoryAsString]
                      }
                      result += " вляво, "
                  }
@@ -35,7 +35,7 @@ class messageBG {
                      if(brR > 1){
                          result += translator.plural[detectionResult.categoryAsString]
                      }else{
-                         result += translator.translateObjectToBg[detectionResult.categoryAsString]
+                         result += translator.translateToBG[detectionResult.categoryAsString]
                      }
                      result += " вдясно, "
                  }
@@ -58,7 +58,7 @@ class messageBG {
                     result += pos(detectionResult)
                 }
             }else{
-                result += translator.number(1,arr.detectionResultList[0].categoryAsString,"bg") + " " + translator.translateObjectToBg[arr.detectionResultList[0].categoryAsString] + " намерен " + distanceCalulator.distance(arr.detectionResultList[0].categoryAsString,size(arr.detectionResultList[0]), "bg") + " и "
+                result += translator.number(1,arr.detectionResultList[0].categoryAsString,"bg") + " " + translator.translateToBG[arr.detectionResultList[0].categoryAsString] + " намерен " + distanceCalulator.distance(arr.detectionResultList[0].categoryAsString,size(arr.detectionResultList[0]), "bg") + " и "
                 result += pos(arr.detectionResultList[0])
             }
 

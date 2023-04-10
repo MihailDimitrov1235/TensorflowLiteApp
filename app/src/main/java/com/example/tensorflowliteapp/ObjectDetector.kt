@@ -13,11 +13,11 @@ import org.tensorflow.lite.support.image.ops.ResizeOp
 
 class ObjectDetector {
     var imageProcessor: ImageProcessor
-    lateinit var labels:List<String>
-    lateinit var model0: EfficientdetLite0
-    lateinit var model1: EfficientdetLite1
-    lateinit var model2: EfficientdetLite2
-    lateinit var model: Mobilenetv1
+    var labels:List<String>
+    var model0: EfficientdetLite0
+    var model1: EfficientdetLite1
+    var model2: EfficientdetLite2
+    var model: Mobilenetv1
 
     constructor(context: Context){
         labels = FileUtil.loadLabels(context,"labels.txt")

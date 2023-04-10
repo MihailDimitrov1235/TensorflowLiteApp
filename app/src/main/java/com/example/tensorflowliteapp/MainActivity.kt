@@ -35,22 +35,14 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     //variables
     lateinit var labels:List<String>
     lateinit var bitmap: Bitmap
-        //speechRecognition
-        var language = "bg"
-        var mode = 0
-        var captureRunning = false
-        var recognize = false
-        var sides : Float = 0.0f
-        var updown : Float = 0.0f
-        var thirdPostion : Float = 0.0f
 
     //objects
+    lateinit var detectionThread: DetectionThread
     lateinit var objectDetector: ObjectDetector
     lateinit var handler: Handler
     lateinit var sensorManager: SensorManager
     lateinit var textToSpeech: Text2Speech
     lateinit var listeningThread: Runnable
-    val paint = Paint()
 
         //camera
         lateinit var cameraManager:CameraManager
@@ -59,7 +51,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        mode = 1
         getPermission()
 //        setUpSensorSuff()
 
@@ -79,7 +70,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         labels = FileUtil.loadLabels(this,"labels.txt")
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        listeningThread = ListeningThread(this, textToSpeech, labels)
+        listeningThread = ListeningThread(this, textToSpeech, objectDetector, handler, labels)
         /*val x = acceleration[0]
         val y = acceleration[1]
         val z = acceleration[2]
@@ -100,35 +91,18 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
                 surface: SurfaceTexture,
                 width: Int,
                 height: Int
-            ) {
-
-            }
+            ) {}
 
             override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
                 return false
             }
 
-            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
-
-                bitmap = textureView.bitmap!!
-                val outputs = objectDetector.detect(bitmap)
-
-                var mutableBitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true)
-                val canvas = Canvas(mutableBitmap)
-
-                val bitmapHeight = bitmap.height
-                val bitmapWidth = bitmap.width
-
-                paint.textSize = bitmapHeight/15f
-                paint.strokeWidth = bitmapWidth/85f
-
-                val threshold = 0.1
-                var postProcessingObj = PostProcessing();
-            }
+            override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
         }
         listeningThread.run();
 
     }
+
     private fun setUpSensorSuff(){
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
 

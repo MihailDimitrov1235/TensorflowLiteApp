@@ -3,22 +3,33 @@ package com.example.tensorflowliteapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.widget.Toast
 import java.io.IOException
 import java.util.*
 
-class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<String>) : Runnable{
+class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector: ObjectDetector, handler: Handler, labels: List<String>) : Runnable{
+
+    // modes
+    val WAITING_MODE = 0
+    val FIND_OBJECT_MODE = 1
+    val FIND_ALL_OBJECTS_MODE = 2
+
+
     val context = context
     val text2Speech = text2Speech
     val translator = Translator()
     val labels = labels
 
+    var mode = 0
     var look4object = ""
-    var recognize = false
-    var isRecognisable = false
     var language = "bg"
+
+    val handler = handler
+    val detectionThread = DetectionThread(objectDetector,text2Speech,mode)
 
 
     override fun run() {
@@ -48,89 +59,68 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, labels: List<S
 
         // Start listening for speech
         speechRecognizer.setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(bundle: Bundle) {
-                //editTextTextMultiLine.setText("Pochva da slusha");
-            }
-
+            override fun onReadyForSpeech(bundle: Bundle) {}
             override fun onBeginningOfSpeech() {}
             override fun onRmsChanged(v: Float) {}
             override fun onBufferReceived(bytes: ByteArray) {}
             override fun onEndOfSpeech() {
-                // editTextTextMultiLine.setText("END");
+                log("EndOfSpeech")
             }
-
             override fun onError(i: Int) {
-                //editTextShowText.setText("Error " + i);
+                log("SpeechError")
                 speechRecognizer.startListening(recognizerIntent)
-                //speechRecognizer.startListening(recognizerIntent);
             }
 
             override fun onResults(results: Bundle) {
                 val result = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (result!!.size == 0) return
                 val lastCommand = result!![result!!.size - 1].lowercase(Locale.getDefault())
+                log("result")
+                log(lastCommand)
 
                 // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
                 if (findCommand.match(lastCommand)) {
+                    handler.removeCallbacks(detectionThread)
                     log("ВЛИЗА В НАМЕРЕН ОБЕКТ------------- ")
+                    if (look4object!=null){
+                        text2Speech.speak(translator.translate("This object can be found.",language))
+                        text2Speech.speak(translator.translate("Starting search",language))
 
-                    look4object = translator.recognizeObject(lastCommand).toString()
-//                    recognize = true
+                        detectionThread.mode = FIND_OBJECT_MODE
+                        detectionThread.look4object = look4object
+                        detectionThread.run()
+                    }else{
+                        text2Speech.speak(translator.translate("This object can NOT be found. Try with something else",language))
+                    }
                 }
                 // Ако е казано "инструкции", казва на човека какви функционалности има приложението
                 //log("/" + lastCommand + "/");
                 if (instructionsCommand.match(lastCommand)) {
-//                    captureRunning = false
-                    //mode = 1
-                    //                  log("instructions");
+                    handler.removeCallbacks(detectionThread)
                     text2Speech.speak("",true)
-                }
-                // Спира приложението да снима
-
-                //Toast.makeText(CapturePictureAutomatically.this, "Vliza v mode 2", Toast.LENGTH_SHORT).show();
-
-                //Toast.makeText(CapturePictureAutomatically.this, "Vliza v mode 2", Toast.LENGTH_SHORT).show();
-//                val assetManager = assets
-                try {
-                        if (look4object!=null){
-                            isRecognisable = true
-                        }
-                    //editTextTextMultiLine.setText("isrecognizable= "+isrecognizable);
-                    if (isRecognisable == true) {
-                        //soundForListen.interrupt();
-                        //soundForListen.stop();
-                        text2Speech.speak(translator.translate("This object can be found. Starting search",language))
-                        isRecognisable = false;
-                        //                            capturePhoto();
-//                        mode++
-                        //speak("Този предмет може да се открие");
-                    } else {
-                        text2Speech.speak(translator.translate("This object can be found.", language))
-                    }
-                } catch (e: IOException) {
-                    e.printStackTrace()
                 }
                 if (stopCommand.match(lastCommand)) {
                     log("СТОП СПРИ ")
-                    recognize = true
+                    handler.removeCallbacks(detectionThread)
                     text2Speech.speak(translator.translate("Mode is stopped. What is your next command?", language))
                 }
 
                 // Влиза тук когато се каже думата навигация и започва да ориентира човека какво
                 // има пред него
                 if (findAllCommand.match(lastCommand)) {
+                    handler.removeCallbacks(detectionThread)
                     log("НАВИГИРА МЕ НАВСЯКЪДЕ")
                     text2Speech.speak(translator.translate("Starting navigation", language))
                     look4object = "all"
-                    recognize = false
                 }
                 // Влиза тук когато потребителят иска да излезе от програмата
                 if (exitCommand.match(lastCommand)) {
+                    handler.removeCallbacks(detectionThread)
                     log("ИЗЛЕЗЕ ОТ ПРОГРАМАТА")
                     System.exit(0)
                 }
                 if (languageCommand.match(lastCommand)) {
-                    text2Speech.speak("")
+                    handler.removeCallbacks(detectionThread)
                     if (lastCommand.contains("българ") || lastCommand.contains("bulgarian")) {
                         language = "bg"
                         text2Speech.speak("Сменяне на езика на български")

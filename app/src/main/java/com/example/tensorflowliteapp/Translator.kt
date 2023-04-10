@@ -353,7 +353,7 @@ class Translator {
         "Starting search" to "Почва търсене",
         "Mode is stopped. What is your next command?" to "Спряхте режима. Какво искате да направя за вас?",
         "Starting navigation" to "Пускане на навигация",
-
+        "This object can NOT be found. Try with something else" to "Този предмет може да бъде разпознат. Опитайте с нещо друго.",
     )
 
     val plural = mapOf(
