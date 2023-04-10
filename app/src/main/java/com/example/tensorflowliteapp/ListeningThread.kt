@@ -7,11 +7,15 @@ import android.os.Handler
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.view.TextureView
 import android.widget.Toast
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.*
 
-class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector: ObjectDetector, handler: Handler, labels: List<String>) : Runnable{
+class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector: ObjectDetector, handler: Handler, textureView: TextureView, labels: List<String>) : Runnable{
 
     // modes
     val WAITING_MODE = 0
@@ -22,6 +26,8 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
     val context = context
     val text2Speech = text2Speech
     val translator = Translator()
+    val objectDetector = objectDetector
+    val textureView = textureView
     val labels = labels
 
     var mode = 0
@@ -29,7 +35,6 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
     var language = "bg"
 
     val handler = handler
-    val detectionThread = DetectionThread(objectDetector,text2Speech,mode)
 
 
     override fun run() {
@@ -42,7 +47,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
             Command(arrayOf("намери", "къде e", "where", "find"))
         val findAllCommand = Command(arrayOf("навигирай", "navigate"))
         val exitCommand =
-            Command(arrayOf("излез от програмата", "излез", "leave"))
+            Command(arrayOf("излез от програмата", "излез", "leave", "exit"))
 
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
@@ -80,15 +85,19 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
 
                 // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
                 if (findCommand.match(lastCommand)) {
-                    handler.removeCallbacks(detectionThread)
                     log("ВЛИЗА В НАМЕРЕН ОБЕКТ------------- ")
                     if (look4object!=null){
                         text2Speech.speak(translator.translate("This object can be found.",language))
                         text2Speech.speak(translator.translate("Starting search",language))
 
-                        detectionThread.mode = FIND_OBJECT_MODE
-                        detectionThread.look4object = look4object
-                        detectionThread.run()
+                        mode = FIND_OBJECT_MODE
+                        GlobalScope.launch {
+                            while (mode == FIND_OBJECT_MODE) {
+                                val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                                log(outputs.await().detectionResultList.size.toString())
+                            }
+                        }
+
                     }else{
                         text2Speech.speak(translator.translate("This object can NOT be found. Try with something else",language))
                     }
@@ -96,31 +105,31 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                 // Ако е казано "инструкции", казва на човека какви функционалности има приложението
                 //log("/" + lastCommand + "/");
                 if (instructionsCommand.match(lastCommand)) {
-                    handler.removeCallbacks(detectionThread)
+                    mode = WAITING_MODE
                     text2Speech.speak("",true)
                 }
                 if (stopCommand.match(lastCommand)) {
                     log("СТОП СПРИ ")
-                    handler.removeCallbacks(detectionThread)
+                    mode = WAITING_MODE
                     text2Speech.speak(translator.translate("Mode is stopped. What is your next command?", language))
                 }
 
                 // Влиза тук когато се каже думата навигация и започва да ориентира човека какво
                 // има пред него
                 if (findAllCommand.match(lastCommand)) {
-                    handler.removeCallbacks(detectionThread)
+                    mode = FIND_ALL_OBJECTS_MODE
                     log("НАВИГИРА МЕ НАВСЯКЪДЕ")
                     text2Speech.speak(translator.translate("Starting navigation", language))
                     look4object = "all"
                 }
                 // Влиза тук когато потребителят иска да излезе от програмата
                 if (exitCommand.match(lastCommand)) {
-                    handler.removeCallbacks(detectionThread)
+                    mode = WAITING_MODE
                     log("ИЗЛЕЗЕ ОТ ПРОГРАМАТА")
                     System.exit(0)
                 }
                 if (languageCommand.match(lastCommand)) {
-                    handler.removeCallbacks(detectionThread)
+                    mode = WAITING_MODE
                     if (lastCommand.contains("българ") || lastCommand.contains("bulgarian")) {
                         language = "bg"
                         text2Speech.speak("Сменяне на езика на български")
@@ -140,4 +149,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
         })
         speechRecognizer.startListening(recognizerIntent)
     }
+
+
+
 }

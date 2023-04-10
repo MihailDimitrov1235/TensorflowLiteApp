@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var bitmap: Bitmap
 
     //objects
-    lateinit var detectionThread: DetectionThread
     lateinit var objectDetector: ObjectDetector
     lateinit var handler: Handler
     lateinit var sensorManager: SensorManager
@@ -70,7 +69,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         labels = FileUtil.loadLabels(this,"labels.txt")
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        listeningThread = ListeningThread(this, textToSpeech, objectDetector, handler, labels)
+        listeningThread = ListeningThread(this, textToSpeech, objectDetector, handler, textureView, labels)
         /*val x = acceleration[0]
         val y = acceleration[1]
         val z = acceleration[2]
@@ -99,7 +98,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
             override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
         }
-        listeningThread.run();
+        listeningThread.run()
 
     }
 
