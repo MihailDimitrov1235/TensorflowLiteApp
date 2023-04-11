@@ -1,4 +1,4 @@
-package com.example.tensorflowliteapp
+package com.example.tensorflowliteapp.message
 
 class Translator {
 

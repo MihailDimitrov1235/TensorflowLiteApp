@@ -8,11 +8,10 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.view.TextureView
-import android.widget.Toast
+import com.example.tensorflowliteapp.message.Translator
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.io.IOException
 import java.util.*
 
 class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector: ObjectDetector, handler: Handler, textureView: TextureView, labels: List<String>) : Runnable{

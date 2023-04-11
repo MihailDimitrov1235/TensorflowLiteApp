@@ -1,4 +1,4 @@
-package com.example.tensorflowliteapp
+package com.example.tensorflowliteapp.message
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent
