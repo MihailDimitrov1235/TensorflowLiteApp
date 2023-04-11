@@ -94,7 +94,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                         GlobalScope.launch {
                             while (mode == FIND_OBJECT_MODE) {
                                 val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                                log(outputs.await().detectionResultList.size.toString())
+                                text2Speech.speak(translator.translate(outputs.await().detectionResultList[0].categoryAsString,"bg"))
                             }
                         }
 
@@ -121,6 +121,11 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                     log("НАВИГИРА МЕ НАВСЯКЪДЕ")
                     text2Speech.speak(translator.translate("Starting navigation", language))
                     look4object = "all"
+                    GlobalScope.launch {
+                        while (mode == FIND_OBJECT_MODE) {
+                            val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                        }
+                    }
                 }
                 // Влиза тук когато потребителят иска да излезе от програмата
                 if (exitCommand.match(lastCommand)) {

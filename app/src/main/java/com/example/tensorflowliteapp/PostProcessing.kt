@@ -14,7 +14,7 @@ class PostProcessing :  SensorEventListener {
     var x : Float = 0F
     var y : Float = 0F
     var z : Float = 0F
-//    var output : Outputs = TODO()
+    val threshold = 0.5
 
     override fun onSensorChanged(event: SensorEvent?) {
         if(event?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
@@ -35,7 +35,6 @@ class PostProcessing :  SensorEventListener {
     fun gridPostion(
         detectionResult: EfficientdetLite2.DetectionResult
     ) : Array<Int?> {
-        //output = outputs
 
             val location = detectionResult.locationAsRectF
             val category = detectionResult.categoryAsString
@@ -99,7 +98,6 @@ class PostProcessing :  SensorEventListener {
         //textView.text = "Location:top"
 
         //val list = intent.getSerializableExtra("outputs") as ArrayList<String>
-        println("hehe")
     }
         //Toast.makeText(MainActivity, list.joinToString(), Toast.LENGTH_SHORT).show()
 

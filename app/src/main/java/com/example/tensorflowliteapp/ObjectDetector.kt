@@ -26,7 +26,6 @@ class ObjectDetector {
         model2 = EfficientdetLite2.newInstance(context)
         model = Mobilenetv1.newInstance(context)
         imageProcessor = ImageProcessor.Builder().add(ResizeOp(320,320, ResizeOp.ResizeMethod.BILINEAR)).build()
-
     }
 
     fun detect(bitmap: Bitmap): EfficientdetLite2.Outputs{
