@@ -8,6 +8,7 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.view.TextureView
+import com.example.tensorflowliteapp.message.DetectionResultProcessor
 import com.example.tensorflowliteapp.message.Translator
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -24,6 +25,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
 
     val context = context
     val text2Speech = text2Speech
+    val detectionResultProcessor = DetectionResultProcessor()
     val translator = Translator()
     val objectDetector = objectDetector
     val textureView = textureView
@@ -46,7 +48,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
             Command(arrayOf("намери", "къде e", "where", "find"))
         val findAllCommand = Command(arrayOf("навигирай", "navigate"))
         val exitCommand =
-            Command(arrayOf("излез от програмата", "излез", "leave", "exit"))
+            Command(arrayOf("излез", "leave", "exit"))
 
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "VLiza v startSpeechRecognition()", Toast.LENGTH_SHORT).show();
@@ -93,7 +95,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                         GlobalScope.launch {
                             while (mode == FIND_OBJECT_MODE) {
                                 val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                                text2Speech.speak(translator.translate(outputs.await().detectionResultList[0].categoryAsString,"bg"))
+                                text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
                             }
                         }
 
@@ -123,6 +125,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                     GlobalScope.launch {
                         while (mode == FIND_OBJECT_MODE) {
                             val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                            text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
                         }
                     }
                 }
