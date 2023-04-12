@@ -356,7 +356,7 @@ class Translator {
         "This object can NOT be found. Try with something else" to "Този предмет може да бъде разпознат. Опитайте с нещо друго.",
     )
 
-    val plural = mapOf(
+    val pluralBG = mapOf(
         "person" to "човека",
         "bicycle" to "колела",
         "car" to "коли",

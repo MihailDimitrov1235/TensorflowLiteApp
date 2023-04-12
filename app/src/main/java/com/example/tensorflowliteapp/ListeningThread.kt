@@ -83,6 +83,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                 val lastCommand = result!![result!!.size - 1].lowercase(Locale.getDefault())
                 log("result")
                 log(lastCommand)
+                look4object = translator.recognizeObject(lastCommand).toString()
 
                 // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
                 if (findCommand.match(lastCommand)) {

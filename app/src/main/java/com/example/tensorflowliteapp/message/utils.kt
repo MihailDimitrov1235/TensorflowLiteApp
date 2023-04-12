@@ -8,25 +8,34 @@ fun size(detectionResult : EfficientdetLite2.DetectionResult): Float {
     )
 }
 
-fun count(arr : EfficientdetLite2.Outputs, word: String, loc: String = "all"): Int {
-    var br = 0
+fun oneOrManyBG(word: String, counter: Int, translator: Translator): String? {
+    if (counter > 1){
+        return translator.pluralBG[word]
+    }
+    return translator.translate(word,"bg")
+}
+
+fun count(arr : EfficientdetLite2.Outputs, word: String, threshold: Double, loc: String = "all"): Int {
+    var counter = 0
     var gridCell : Array<Int?>
     var postProcessing = PostProcessing()
     arr.detectionResultList.forEachIndexed { index, detectionResult ->
-        gridCell = postProcessing.gridPostion(detectionResult)
-        if (detectionResult.categoryAsString == word) {
-            if(loc == "left" && gridCell[0]!! <= 1){
-                br += 1
-            }else if(loc == "mid" && gridCell[0] == 2){
-                br += 1
-            }else if(loc == "right" && gridCell[0]!! >= 3){
-                br += 1
-            }else if(loc == "all"){
-                br += 1
+        if (detectionResult.scoreAsFloat >= threshold) {
+            gridCell = postProcessing.gridPostion(detectionResult)
+            if (detectionResult.categoryAsString == word || word == "all") {
+                if (loc == "left" && gridCell[0]!! <= 1) {
+                    counter += 1
+                } else if (loc == "mid" && gridCell[0] == 2) {
+                    counter += 1
+                } else if (loc == "right" && gridCell[0]!! >= 3) {
+                    counter += 1
+                } else if (loc == "all") {
+                    counter += 1
+                }
             }
         }
     }
-    return br
+    return counter
 }
 
 fun possitionBG(detectionResult: EfficientdetLite2.DetectionResult): String {

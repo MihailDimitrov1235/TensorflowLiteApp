@@ -1,39 +1,34 @@
 package com.example.tensorflowliteapp.message
 
+import android.annotation.SuppressLint
 import com.example.tensorflowliteapp.ml.EfficientdetLite2.Outputs
 
+@SuppressLint("SuspiciousIndentation")
 fun findAllObjectsBG(outputs: Outputs, translator: Translator, threshold: Double): String{
     var result = "Има "
     var objects = listOf<String>()
-        if (outputs.detectionResultList.size == 0) {
+    val counter = count(outputs,"all",threshold)
+        if (counter == 0) {
             return "Няма намерени обекти"
         }
-        result += outputs.detectionResultList.size.toString() + " обекта намерни."
+        result += counter.toString() + " обекта намерни."
         outputs.detectionResultList.forEachIndexed { index, detectionResult ->
             if (!objects.contains(detectionResult.categoryAsString) && detectionResult.scoreAsFloat >= threshold) {
                 objects += detectionResult.categoryAsString
-                var brL = count(outputs, detectionResult.categoryAsString, "left")
-                var brM = count(outputs, detectionResult.categoryAsString, "middle")
-                var brR = count(outputs, detectionResult.categoryAsString, "right")
+                val brL = count(outputs, detectionResult.categoryAsString, threshold, "left")
+                val brM = count(outputs, detectionResult.categoryAsString, threshold, "mid")
+                val brR = count(outputs, detectionResult.categoryAsString, threshold, "right")
                 if (brL > 0) {
                     result += translator.number(brL, detectionResult.categoryAsString, "bg")
-                        .toString() + " "
-                    if (brL > 1) {
-                        result += translator.plural[detectionResult.categoryAsString]
-                    } else {
-                        result += translator.translateToBG[detectionResult.categoryAsString]
-                    }
-                    result += " вляво, "
+                        .toString() + " " + oneOrManyBG(detectionResult.categoryAsString, brL, translator) + " вляво, "
                 }
-                if (brR > 0) {
+                if (brM > 0) {
+                    result += translator.number(brM, detectionResult.categoryAsString, "bg")
+                        .toString() + " " + oneOrManyBG(detectionResult.categoryAsString, brM, translator) + " посредата, "
+                }
+                if (brL > 0) {
                     result += translator.number(brR, detectionResult.categoryAsString, "bg")
-                        .toString() + " "
-                    if (brR > 1) {
-                        result += translator.plural[detectionResult.categoryAsString]
-                    } else {
-                        result += translator.translateToBG[detectionResult.categoryAsString]
-                    }
-                    result += " вдясно, "
+                        .toString() + " " + oneOrManyBG(detectionResult.categoryAsString, brR, translator) + " вдясно, "
                 }
             }
 
