@@ -59,4 +59,8 @@ class Text2Speech(context: Context) {
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
         }
     }
+
+    fun isSpeaking():Boolean{
+        return textToSpeech.isSpeaking
+    }
 }

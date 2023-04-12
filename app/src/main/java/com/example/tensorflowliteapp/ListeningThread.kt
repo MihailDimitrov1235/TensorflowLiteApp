@@ -94,8 +94,10 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                         mode = FIND_OBJECT_MODE
                         GlobalScope.launch {
                             while (mode == FIND_OBJECT_MODE) {
-                                val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                                text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
+                                if (!text2Speech.isSpeaking()){
+                                    val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                                    text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
+                                }
                             }
                         }
 
@@ -124,8 +126,10 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                     look4object = "all"
                     GlobalScope.launch {
                         while (mode == FIND_OBJECT_MODE) {
-                            val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                            text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
+                            if (!text2Speech.isSpeaking()){
+                                val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                                text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
+                            }
                         }
                     }
                 }
