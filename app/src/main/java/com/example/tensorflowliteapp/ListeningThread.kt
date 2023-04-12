@@ -34,6 +34,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
     var mode = 0
     var look4object = ""
     var language = "bg"
+    var processing = false
 
     val handler = handler
 
@@ -89,17 +90,17 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                 // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
                 if (findCommand.match(lastCommand)) {
                     log("ВЛИЗА В НАМЕРЕН ОБЕКТ------------- ")
-                    if (look4object!=null){
+                    if (look4object != ""){
                         text2Speech.speak(translator.translate("This object can be found.",language))
                         text2Speech.speak(translator.translate("Starting search",language))
-
                         mode = FIND_OBJECT_MODE
                         GlobalScope.launch {
                             while (mode == FIND_OBJECT_MODE) {
-                                if (!text2Speech.isSpeaking()){
+                                if (!processing && !text2Speech.isSpeaking()){
+                                    processing = true
                                     val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                                    log(look4object)
                                     text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
+                                    processing = false
                                 }
                             }
                         }
@@ -129,9 +130,11 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                     look4object = "all"
                     GlobalScope.launch {
                         while (mode == FIND_ALL_OBJECTS_MODE) {
-                            if (!text2Speech.isSpeaking()){
+                            if (!processing && !text2Speech.isSpeaking()){
+                                processing = true
                                 val outputs = async { objectDetector.detect(textureView.bitmap!!) }
                                 text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
+                                processing = false
                             }
                         }
                     }

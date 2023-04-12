@@ -1,5 +1,6 @@
 package com.example.tensorflowliteapp.message
 
+import android.util.Log
 import com.example.tensorflowliteapp.log
 
 class Translator {
@@ -355,7 +356,7 @@ class Translator {
         "Starting search" to "Почва търсене",
         "Mode is stopped. What is your next command?" to "Спряхте режима. Какво искате да направя за вас?",
         "Starting navigation" to "Пускане на навигация",
-        "This object can NOT be found. Try with something else" to "Този предмет може да бъде разпознат. Опитайте с нещо друго.",
+        "This object can NOT be found. Try with something else" to "Този предмет НЕ може да бъде разпознат. Опитайте с нещо друго.",
     )
 
     val pluralBG = mapOf(
@@ -501,7 +502,7 @@ class Translator {
         if (key != null) {
             return recognizableObjects[key]
         }
-        return null
+        return ""
     }
 
 }
