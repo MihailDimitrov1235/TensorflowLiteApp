@@ -11,7 +11,13 @@ fun findAllObjectsBG(outputs: Outputs, translator: Translator, threshold: Double
         if (counter == 0) {
             return "Няма намерени обекти"
         }
-        result += counter.toString() + " обекта намерни."
+        if (counter == 1){
+            result += "един обект намерен."
+        }else if(counter == 2){
+            result += "два обекта намерени."
+        }else {
+            result += counter.toString() + " обекта намерени."
+        }
         outputs.detectionResultList.forEachIndexed { index, detectionResult ->
             if (!objects.contains(detectionResult.categoryAsString) && detectionResult.scoreAsFloat >= threshold) {
                 objects += detectionResult.categoryAsString

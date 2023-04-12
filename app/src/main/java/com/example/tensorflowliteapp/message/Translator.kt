@@ -1,5 +1,7 @@
 package com.example.tensorflowliteapp.message
 
+import com.example.tensorflowliteapp.log
+
 class Translator {
 
     val recognizableObjects = mapOf(
@@ -444,20 +446,23 @@ class Translator {
         var word = word
         if (lang.equals("bg")) {
             word = translateToBG[word].toString()
+            log(word)
+            val rod = rod(word)
+            log(rod.toString())
             if (br > 2) {
                 return br.toString()
             } else if (br == 1) {
-                if (word?.let { rod(it) } == 1) {
+                if (rod == 1) {
                     return "Един"
-                } else if (word?.let { rod(it) } == 2) {
+                } else if (rod == 2) {
                     return "Една"
                 } else {
                     return "Едно"
                 }
             } else if (br == 2) {
-                if (word?.let { rod(it) } == 1) {
+                if (rod == 1) {
                     return "Два"
-                } else if (word?.let { rod(it) } == 2) {
+                } else if (rod == 2) {
                     return "Две"
                 } else {
                     return "Две"
@@ -468,12 +473,16 @@ class Translator {
     }
 
     fun rod(word : String): Int {
-
-        val words = listOf(word.split(" "))
-        val lastChar = words[0][words[0].size-1]
-        if(lastChar == "a" || lastChar == "я"){
+        var lastChar = 'а'
+        if (word.contains(" ")){
+            lastChar = word[word.indexOf(" ")-1]
+        }else {
+            lastChar = word.last()
+        }
+        log(lastChar.toString())
+        if(lastChar == 'а' || lastChar == 'я'){
             return 2
-        }else if(lastChar == "o" || lastChar == "e"){
+        }else if(lastChar == 'о' || lastChar == 'е'){
             return 3
         }else{
             return 1
@@ -488,8 +497,9 @@ class Translator {
     }
 
     fun recognizeObject(word: String): String? {
-        if (recognizableObjects.containsKey(word)){
-            return recognizableObjects[word]
+        val key = recognizableObjects.keys.find { it in word }
+        if (key != null) {
+            return recognizableObjects[key]
         }
         return null
     }

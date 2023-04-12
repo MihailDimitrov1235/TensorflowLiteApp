@@ -83,6 +83,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                 val lastCommand = result!![result!!.size - 1].lowercase(Locale.getDefault())
                 log("result")
                 log(lastCommand)
+                log(translator.recognizeObject(lastCommand).toString())
                 look4object = translator.recognizeObject(lastCommand).toString()
 
                 // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
@@ -97,6 +98,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                             while (mode == FIND_OBJECT_MODE) {
                                 if (!text2Speech.isSpeaking()){
                                     val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                                    log(look4object)
                                     text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
                                 }
                             }
@@ -126,7 +128,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                     text2Speech.speak(translator.translate("Starting navigation", language))
                     look4object = "all"
                     GlobalScope.launch {
-                        while (mode == FIND_OBJECT_MODE) {
+                        while (mode == FIND_ALL_OBJECTS_MODE) {
                             if (!text2Speech.isSpeaking()){
                                 val outputs = async { objectDetector.detect(textureView.bitmap!!) }
                                 text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
