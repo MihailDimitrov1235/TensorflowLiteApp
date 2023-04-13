@@ -2,6 +2,9 @@ package com.example.tensorflowliteapp
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.RectF
+import com.example.tensorflowliteapp.message.imageHeight
+import com.example.tensorflowliteapp.message.imageWidth
 import com.example.tensorflowliteapp.ml.EfficientdetLite0
 import com.example.tensorflowliteapp.ml.EfficientdetLite1
 import com.example.tensorflowliteapp.ml.EfficientdetLite2
@@ -18,6 +21,11 @@ class ObjectDetector {
     var model1: EfficientdetLite1
     var model2: EfficientdetLite2
     var model: Mobilenetv1
+    var threshold = 0.5
+
+    fun setThreshold(threshold: Double){
+        this.threshold = threshold
+    }
 
     constructor(context: Context){
         labels = FileUtil.loadLabels(context,"labels.txt")
@@ -25,14 +33,21 @@ class ObjectDetector {
         model1 = EfficientdetLite1.newInstance(context)
         model2 = EfficientdetLite2.newInstance(context)
         model = Mobilenetv1.newInstance(context)
-        imageProcessor = ImageProcessor.Builder().add(ResizeOp(320,320, ResizeOp.ResizeMethod.BILINEAR)).build()
+        imageProcessor = ImageProcessor.Builder().add(ResizeOp(imageHeight, imageWidth, ResizeOp.ResizeMethod.BILINEAR)).build()
     }
 
-    fun detect(bitmap: Bitmap): EfficientdetLite2.Outputs{
+    fun detect(bitmap: Bitmap): MutableList<Result> {
         var image = TensorImage.fromBitmap(bitmap)
         image = imageProcessor.process(image)
         val outputs = model2.process(image)
-        return outputs
+        val outputList = mutableListOf<Result>()
+        outputs.detectionResultList.forEach{detectionResult ->
+            if (detectionResult.scoreAsFloat >= threshold){
+                val result = Result(detectionResult.locationAsRectF,detectionResult.categoryAsString,detectionResult.scoreAsFloat)
+                outputList.add(result)
+            }
+        }
+        return outputList
     }
 
     fun destroy(){
@@ -40,5 +55,20 @@ class ObjectDetector {
         model1.close()
         model2.close()
         model.close()
+    }
+}
+
+class Result(location: RectF, category: String, score: Float) {
+    val location = location
+    val category = category
+    val score = score
+    fun getLocation(): RectF {
+        return location
+    }
+    fun getCategory(): String {
+        return category
+    }
+    fun getScore(): Float {
+        return score
     }
 }

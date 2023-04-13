@@ -1,13 +1,12 @@
 package com.example.tensorflowliteapp
 
 import com.example.tensorflowliteapp.message.*
-import com.example.tensorflowliteapp.ml.EfficientdetLite2.Outputs
 
-fun findObjectBG(outputs: Outputs, word: String, translator: Translator, threshold: Double): String{
+fun findObjectBG(outputs: MutableList<Result>, word: String, translator: Translator): String{
 
     log(word)
     var result = "Има "
-    var counter = count(outputs,word,threshold)
+    var counter = count(outputs,word)
     if(counter == 0){
         if(word == "person"){
             return "Няма намерени хора"
@@ -16,10 +15,10 @@ fun findObjectBG(outputs: Outputs, word: String, translator: Translator, thresho
     }
     val distanceCalulator = distanceCalulator()
         result += translator.number(counter,word,"bg") + " " + oneOrManyBG(word,counter,translator) + " пред телефона."
-        outputs.detectionResultList.forEachIndexed { index, detectionResult ->
-            if(detectionResult.categoryAsString.equals(word) && detectionResult.scoreAsFloat >= threshold) {
-                result += translator.number(1, detectionResult.categoryAsString, "bg").toString() +
-                        " " + distanceCalulator.distance(detectionResult.categoryAsString, size(detectionResult),"bg") + " и е "
+        outputs.forEach { detectionResult ->
+            if(detectionResult.getCategory().equals(word)) {
+                result += translator.number(1, detectionResult.getCategory(), "bg").toString() +
+                        " " + distanceCalulator.distance(detectionResult.getCategory(), size(detectionResult),"bg") + " и е "
                 result += possitionBG(detectionResult)
             }
         }

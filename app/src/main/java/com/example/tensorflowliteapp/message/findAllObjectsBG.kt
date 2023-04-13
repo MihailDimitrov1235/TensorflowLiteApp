@@ -1,13 +1,13 @@
 package com.example.tensorflowliteapp.message
 
 import android.annotation.SuppressLint
-import com.example.tensorflowliteapp.ml.EfficientdetLite2.Outputs
+import com.example.tensorflowliteapp.Result
 
 @SuppressLint("SuspiciousIndentation")
-fun findAllObjectsBG(outputs: Outputs, translator: Translator, threshold: Double): String{
+fun findAllObjectsBG(outputs: MutableList<Result>, translator: Translator): String{
     var result = "Има "
     var objects = listOf<String>()
-    val counter = count(outputs,"all",threshold)
+    val counter = count(outputs,"all")
         if (counter == 0) {
             return "Няма намерени обекти"
         }
@@ -18,23 +18,23 @@ fun findAllObjectsBG(outputs: Outputs, translator: Translator, threshold: Double
         }else {
             result += counter.toString() + " обекта намерени."
         }
-        outputs.detectionResultList.forEachIndexed { index, detectionResult ->
-            if (!objects.contains(detectionResult.categoryAsString) && detectionResult.scoreAsFloat >= threshold) {
-                objects += detectionResult.categoryAsString
-                val brL = count(outputs, detectionResult.categoryAsString, threshold, "left")
-                val brM = count(outputs, detectionResult.categoryAsString, threshold, "mid")
-                val brR = count(outputs, detectionResult.categoryAsString, threshold, "right")
+        outputs.forEach { detectionResult ->
+            if (!objects.contains(detectionResult.getCategory())) {
+                objects += detectionResult.getCategory()
+                val brL = count(outputs, detectionResult.getCategory(), "left")
+                val brM = count(outputs, detectionResult.getCategory(), "mid")
+                val brR = count(outputs, detectionResult.getCategory(), "right")
                 if (brL > 0) {
-                    result += translator.number(brL, detectionResult.categoryAsString, "bg")
-                        .toString() + " " + oneOrManyBG(detectionResult.categoryAsString, brL, translator) + " вляво, "
+                    result += translator.number(brL, detectionResult.getCategory(), "bg")
+                        .toString() + " " + oneOrManyBG(detectionResult.getCategory(), brL, translator) + " вляво, "
                 }
                 if (brM > 0) {
-                    result += translator.number(brM, detectionResult.categoryAsString, "bg")
-                        .toString() + " " + oneOrManyBG(detectionResult.categoryAsString, brM, translator) + " посредата, "
+                    result += translator.number(brM, detectionResult.getCategory(), "bg")
+                        .toString() + " " + oneOrManyBG(detectionResult.getCategory(), brM, translator) + " посредата, "
                 }
                 if (brL > 0) {
-                    result += translator.number(brR, detectionResult.categoryAsString, "bg")
-                        .toString() + " " + oneOrManyBG(detectionResult.categoryAsString, brR, translator) + " вдясно, "
+                    result += translator.number(brR, detectionResult.getCategory(), "bg")
+                        .toString() + " " + oneOrManyBG(detectionResult.getCategory(), brR, translator) + " вдясно, "
                 }
             }
 
