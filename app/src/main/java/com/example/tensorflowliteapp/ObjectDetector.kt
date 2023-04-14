@@ -21,7 +21,11 @@ class ObjectDetector {
     var model1: EfficientdetLite1
     var model2: EfficientdetLite2
     var model: Mobilenetv1
-    var threshold = 0.5
+    private var threshold = 0.5
+
+    fun setThreshold(threshold: Double){
+        this.threshold = threshold
+    }
 
     constructor(context: Context){
         labels = FileUtil.loadLabels(context,"labels.txt")
@@ -55,7 +59,16 @@ class ObjectDetector {
 }
 
 class Result(location: RectF, category: String, score: Float) {
-    val location = location
-    val category = category
-    val score = score
+    private val location = location
+    private val category = category
+    private val score = score
+    fun getLocation(): RectF {
+        return location
+    }
+    fun getCategory(): String {
+        return category
+    }
+    fun getScore(): Float {
+        return score
+    }
 }
