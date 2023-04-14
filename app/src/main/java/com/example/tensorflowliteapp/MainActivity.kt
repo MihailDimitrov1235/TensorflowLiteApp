@@ -104,10 +104,10 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     private fun setUpSensorSuff(){
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also {
             sensorManager.registerListener(this,it,SensorManager.SENSOR_DELAY_FASTEST,SensorManager.SENSOR_DELAY_FASTEST)
         }
+
 
     }
 
@@ -116,6 +116,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val audioRecordPermission = android.Manifest.permission.RECORD_AUDIO
         val storagePermission = android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
         val sensorsPermision = android.Manifest.permission.HIGH_SAMPLING_RATE_SENSORS
+
         if( (ContextCompat.checkSelfPermission(this,cameraPermision) != PackageManager.PERMISSION_GRANTED)
             || (ContextCompat.checkSelfPermission(this,audioRecordPermission) != PackageManager.PERMISSION_GRANTED)
             || (ContextCompat.checkSelfPermission(this,storagePermission) != PackageManager.PERMISSION_GRANTED)
