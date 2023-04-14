@@ -6,8 +6,8 @@ val imageWidth = 320
 val imageHeight = 320
 
 fun size(detectionResult: Result): Float {
-    return Math.abs(detectionResult.getLocation().left - detectionResult.getLocation().right) * Math.abs(
-        detectionResult.getLocation().top - detectionResult.getLocation().bottom
+    return Math.abs(detectionResult.location.left - detectionResult.location.right) * Math.abs(
+        detectionResult.location.top - detectionResult.location.bottom
     )
 }
 
@@ -23,7 +23,7 @@ fun count(arr: MutableList<Result>, word: String, loc: String = "all"): Int {
     var gridCell : Array<Int?>
     arr.forEach { detectionResult ->
             gridCell = gridPostion(detectionResult)
-            if (detectionResult.getCategory() == word || word == "all") {
+            if (detectionResult.category == word || word == "all") {
                 if (loc == "left" && gridCell[0]!! <= 1) {
                     counter += 1
                 } else if (loc == "mid" && gridCell[0] == 2) {
@@ -80,7 +80,7 @@ fun gridPostion(
     detectionResult: Result
 ) : Array<Int?> {
 
-    val location = detectionResult.getLocation()
+    val location = detectionResult.location
     val centerObjectX = (location.left+location.right)/2
     val centerObjectY = (location.top+location.bottom)/2
     val gridCell = arrayOfNulls<Int>(2)

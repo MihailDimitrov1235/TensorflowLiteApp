@@ -16,9 +16,9 @@ fun findObjectBG(outputs: MutableList<Result>, word: String, translator: Transla
     val distanceCalulator = distanceCalulator()
         result += translator.number(counter,word,"bg") + " " + oneOrManyBG(word,counter,translator) + " пред телефона."
         outputs.forEach { detectionResult ->
-            if(detectionResult.getCategory().equals(word)) {
-                result += translator.number(1, detectionResult.getCategory(), "bg").toString() +
-                        " " + distanceCalulator.distance(detectionResult.getCategory(), size(detectionResult),"bg") + " и е "
+            if(detectionResult.category.equals(word)) {
+                result += translator.number(1, detectionResult.category, "bg").toString() +
+                        " " + distanceCalulator.distance(detectionResult.category, size(detectionResult),"bg") + " и е "
                 result += possitionBG(detectionResult)
             }
         }

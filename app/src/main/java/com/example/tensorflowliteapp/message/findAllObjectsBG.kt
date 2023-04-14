@@ -19,22 +19,22 @@ fun findAllObjectsBG(outputs: MutableList<Result>, translator: Translator): Stri
             result += counter.toString() + " обекта намерени."
         }
         outputs.forEach { detectionResult ->
-            if (!objects.contains(detectionResult.getCategory())) {
-                objects += detectionResult.getCategory()
-                val brL = count(outputs, detectionResult.getCategory(), "left")
-                val brM = count(outputs, detectionResult.getCategory(), "mid")
-                val brR = count(outputs, detectionResult.getCategory(), "right")
+            if (!objects.contains(detectionResult.category)) {
+                objects += detectionResult.category
+                val brL = count(outputs, detectionResult.category, "left")
+                val brM = count(outputs, detectionResult.category, "mid")
+                val brR = count(outputs, detectionResult.category, "right")
                 if (brL > 0) {
-                    result += translator.number(brL, detectionResult.getCategory(), "bg")
-                        .toString() + " " + oneOrManyBG(detectionResult.getCategory(), brL, translator) + " вляво, "
+                    result += translator.number(brL, detectionResult.category, "bg")
+                        .toString() + " " + oneOrManyBG(detectionResult.category, brL, translator) + " вляво, "
                 }
                 if (brM > 0) {
-                    result += translator.number(brM, detectionResult.getCategory(), "bg")
-                        .toString() + " " + oneOrManyBG(detectionResult.getCategory(), brM, translator) + " посредата, "
+                    result += translator.number(brM, detectionResult.category, "bg")
+                        .toString() + " " + oneOrManyBG(detectionResult.category, brM, translator) + " посредата, "
                 }
                 if (brL > 0) {
-                    result += translator.number(brR, detectionResult.getCategory(), "bg")
-                        .toString() + " " + oneOrManyBG(detectionResult.getCategory(), brR, translator) + " вдясно, "
+                    result += translator.number(brR, detectionResult.category, "bg")
+                        .toString() + " " + oneOrManyBG(detectionResult.category, brR, translator) + " вдясно, "
                 }
             }
 
