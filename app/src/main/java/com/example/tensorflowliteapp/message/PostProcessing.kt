@@ -4,7 +4,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import com.example.tensorflowliteapp.Result
-
+import com.example.tensorflowliteapp.message.*
 
 class PostProcessing :  SensorEventListener {
 
@@ -15,7 +15,18 @@ class PostProcessing :  SensorEventListener {
     var y : Float = 0F
     var z : Float = 0F
     val threshold = 0.5
-
+    @JvmName("getX1")
+    fun getX(): Float {
+        return this.x;
+    }
+    @JvmName("getY1")
+    fun getY(): Float {
+        return this.y;
+    }
+    @JvmName("getZ1")
+    fun getZ(): Float {
+        return this.z;
+    }
     override fun onSensorChanged(event: SensorEvent?) {
         if(event?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
             x = event.values[0]

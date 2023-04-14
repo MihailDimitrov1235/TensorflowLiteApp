@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         getPermission()
-//        setUpSensorSuff()
+        setUpSensorSuff()
 
         textView = findViewById(R.id.textViewText)
         txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)

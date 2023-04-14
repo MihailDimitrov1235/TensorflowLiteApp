@@ -1,5 +1,7 @@
 package com.example.tensorflowliteapp.message
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
 import com.example.tensorflowliteapp.Result
 
 val imageWidth = 320
@@ -41,7 +43,23 @@ fun count(arr: MutableList<Result>, word: String, loc: String = "all"): Int {
 fun possitionBG(detectionResult: Result): String {
     var gridCell : Array<Int?>
     gridCell = gridPostion(detectionResult)
+    val obj = PostProcessing()
+    var x = obj.getX()
+    var y = obj.getX()
+    var z = obj.getX()
     var result = ""
+    var InclinationCase = 0
+    if(z>-0.5 && y>=0){
+        if(y>=7.5 && y<10){
+            InclinationCase = 1
+        }else if(y>=5 && y<7.5){
+            InclinationCase = 2
+        }else if(y>=2.5 && y<5){
+            InclinationCase = 3
+        }else if(y>=0 && y<2.5){
+            InclinationCase = 4
+        }
+    }
     if(gridCell[0] == 0){
         result += "вляво"
     }
@@ -57,8 +75,21 @@ fun possitionBG(detectionResult: Result): String {
     if(gridCell[0] == 4){
         result += "вдясно"
     }
-
-    if(gridCell[1] == 0){
+    var caseInclination = InclinationCase+ gridCell[1]!!
+    when (caseInclination) {
+        1 -> result += " нагоре."
+        2 -> result += " леко нагоре."
+        3 -> result += " ."
+        4 -> result += " леко надолу."
+        5 -> result += " надолу."
+        6 -> result += " малко напред и на земята."
+        7 -> result += " на земята."
+        8 -> result += " леко на назад и на земята."
+        else -> {
+            //print(“value of intNumber is neither 1 nor 2”)
+        }
+    }
+    /*if(gridCell[1] == 0){
         result += " нагоре."
     }
     if(gridCell[1] == 1){
@@ -72,7 +103,7 @@ fun possitionBG(detectionResult: Result): String {
     }
     if(gridCell[1] == 4){
         result += " и долу. "
-    }
+    }*/
     return result
 }
 
