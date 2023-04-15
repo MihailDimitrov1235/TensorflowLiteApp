@@ -1,6 +1,5 @@
 package com.example.tensorflowliteapp.message
 
-import android.util.Log
 import com.example.tensorflowliteapp.log
 
 class Translator {
@@ -447,9 +446,7 @@ class Translator {
         var word = word
         if (lang.equals("bg")) {
             word = translateToBG[word].toString()
-            log(word)
             val rod = rod(word)
-            log(rod.toString())
             if (br > 2) {
                 return br.toString()
             } else if (br == 1) {
@@ -480,7 +477,6 @@ class Translator {
         }else {
             lastChar = word.last()
         }
-        log(lastChar.toString())
         if(lastChar == 'а' || lastChar == 'я'){
             return 2
         }else if(lastChar == 'о' || lastChar == 'е'){

@@ -4,7 +4,6 @@ import com.example.tensorflowliteapp.message.*
 
 fun findObjectBG(outputs: MutableList<Result>, word: String, translator: Translator): String{
 
-    log(word)
     var result = "Има "
     var counter = count(outputs,word)
     if(counter == 0){

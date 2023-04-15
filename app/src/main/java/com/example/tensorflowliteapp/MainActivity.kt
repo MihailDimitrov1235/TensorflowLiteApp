@@ -15,6 +15,7 @@ import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.view.TextureView
 import android.widget.ImageView
 import android.widget.TextView
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         getPermission()
-        setUpSensorSuff()
+        setUpSensorStuff()
 
         textView = findViewById(R.id.textViewText)
         txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)
@@ -102,10 +103,14 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     }
 
-    private fun setUpSensorSuff(){
+    private fun setUpSensorStuff(){
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also {
-            sensorManager.registerListener(this,it,SensorManager.SENSOR_DELAY_FASTEST,SensorManager.SENSOR_DELAY_FASTEST)
+        try {
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also {
+                sensorManager.registerListener(this,it,SensorManager.SENSOR_DELAY_FASTEST,SensorManager.SENSOR_DELAY_FASTEST)
+            }
+        }catch (e: java.lang.Exception){
+            Log.e("Accelerometer error", e.toString())
         }
 
 

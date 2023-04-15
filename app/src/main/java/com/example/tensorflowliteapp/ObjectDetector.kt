@@ -8,6 +8,7 @@ import com.example.tensorflowliteapp.message.imageWidth
 import com.example.tensorflowliteapp.ml.EfficientdetLite0
 import com.example.tensorflowliteapp.ml.EfficientdetLite1
 import com.example.tensorflowliteapp.ml.EfficientdetLite2
+import com.example.tensorflowliteapp.ml.EfficientdetLite4
 import com.example.tensorflowliteapp.ml.Mobilenetv1
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.image.ImageProcessor
@@ -20,6 +21,7 @@ class ObjectDetector {
     var model0: EfficientdetLite0
     var model1: EfficientdetLite1
     var model2: EfficientdetLite2
+    var model4: EfficientdetLite4
     var model: Mobilenetv1
     var threshold = 0.5
 
@@ -28,6 +30,7 @@ class ObjectDetector {
         model0 = EfficientdetLite0.newInstance(context)
         model1 = EfficientdetLite1.newInstance(context)
         model2 = EfficientdetLite2.newInstance(context)
+        model4 = EfficientdetLite4.newInstance(context)
         model = Mobilenetv1.newInstance(context)
         imageProcessor = ImageProcessor.Builder().add(ResizeOp(imageHeight, imageWidth, ResizeOp.ResizeMethod.BILINEAR)).build()
     }
@@ -35,7 +38,7 @@ class ObjectDetector {
     fun detect(bitmap: Bitmap): MutableList<Result> {
         var image = TensorImage.fromBitmap(bitmap)
         image = imageProcessor.process(image)
-        val outputs = model2.process(image)
+        val outputs = model4.process(image)
         val outputList = mutableListOf<Result>()
         outputs.detectionResultList.forEach{detectionResult ->
             if (detectionResult.scoreAsFloat >= threshold){
@@ -50,6 +53,7 @@ class ObjectDetector {
         model0.close()
         model1.close()
         model2.close()
+        model4.close()
         model.close()
     }
 }
