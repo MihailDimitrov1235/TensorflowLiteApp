@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     //variables
     lateinit var labels:List<String>
+    var request = true
 
     //objects
     lateinit var objectDetector: ObjectDetector
@@ -113,15 +114,19 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         val cameraPermission = android.Manifest.permission.CAMERA
         val audioRecordPermission = android.Manifest.permission.RECORD_AUDIO
 
-        if( (ContextCompat.checkSelfPermission(this,cameraPermission) != PackageManager.PERMISSION_GRANTED)
+
+        while( (ContextCompat.checkSelfPermission(this,cameraPermission) != PackageManager.PERMISSION_GRANTED)
             || (ContextCompat.checkSelfPermission(this,audioRecordPermission) != PackageManager.PERMISSION_GRANTED)){
-            requestPermissions(
-                arrayOf(
-                    cameraPermission,
-                    audioRecordPermission,
-                ),
-                101
-            )
+            if (request) {
+                requestPermissions(
+                    arrayOf(
+                        cameraPermission,
+                        audioRecordPermission,
+                    ),
+                    101
+                )
+                request = false
+            }
         }
     }
 
@@ -132,7 +137,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults[0] != PackageManager.PERMISSION_GRANTED){
-            getPermission();
+            request = true
+            getPermission()
         }
     }
 
