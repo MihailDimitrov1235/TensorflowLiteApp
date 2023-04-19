@@ -28,8 +28,6 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     //views
     lateinit var txtKoltinAccelerometer : TextView
-    lateinit var editTextTextPersonName : TextView
-    lateinit var textView: TextView
     lateinit var imageView: ImageView
     lateinit var textureView:TextureView
 
@@ -54,11 +52,8 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         getPermission()
         setUpSensorStuff()
 
-        textView = findViewById(R.id.textViewText)
-        txtKoltinAccelerometer = findViewById(R.id.txtKoltinAccelerometer)
         imageView = findViewById(R.id.imageView)
         textureView = findViewById(R.id.textureView)
-        editTextTextPersonName = findViewById(R.id.editTextTextPersonName)
 
         objectDetector = ObjectDetector(this)
         textToSpeech = Text2Speech(this)
@@ -150,13 +145,9 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if(event?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
-            val sides = event.values[0]
-            val updown = event.values[1]
-            val thirdPostion = event.values[2]
-//            var postProcessingObj = PostProcessing();
-
-            txtKoltinAccelerometer.text = "up/down ${updown.toInt()}\nleft/rigth ${sides.toInt()}\nthirdPOstion ${thirdPostion}"
-            //postProcessingObj.determingPhonePostion(updown,sides,thirdPostion);
+//            val sides = event.values[0]
+//            val updown = event.values[1]
+//            val thirdPostion = event.values[2]
         }
     }
 

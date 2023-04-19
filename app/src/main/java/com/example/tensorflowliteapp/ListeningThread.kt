@@ -147,7 +147,12 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                                     if (!processing && !text2Speech.isSpeaking()){
                                         processing = true
                                         val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                                        text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
+                                        log(outputs.await().toString())
+                                        if (!stopProcessing){
+                                            text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
+                                        }else{
+                                            stopProcessing = false
+                                        }
                                         processing = false
                                     }
                                 }
