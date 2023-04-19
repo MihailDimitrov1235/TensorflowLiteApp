@@ -4,8 +4,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import com.example.tensorflowliteapp.Result
 
-val imageWidth = 320
-val imageHeight = 320
+val imageWidth = 640
+val imageHeight = 640
 
 fun size(detectionResult: Result): Float {
     return Math.abs(detectionResult.location.left - detectionResult.location.right) * Math.abs(

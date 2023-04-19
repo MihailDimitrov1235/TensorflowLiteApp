@@ -35,6 +35,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
     var look4object = ""
     var language = "bg"
     var processing = false
+    var stopProcessing = false
 
     val handler = handler
 
@@ -82,84 +83,91 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                 val result = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (result!!.size == 0) return
                 val lastCommand = result!![result!!.size - 1].lowercase(Locale.getDefault())
-                log(lastCommand)
-                look4object = translator.recognizeObject(lastCommand).toString()
-
-                // Влиза тук когато се каже човекът каже, че иска да му се намери даден обект
-                if (findCommand.match(lastCommand)) {
-                    log("ВЛИЗА В НАМЕРЕН ОБЕКТ------------- ")
-                    if (look4object != ""){
-                        text2Speech.speak(translator.translate("This object can be found.",language))
-                        text2Speech.speak(translator.translate("Starting search",language))
-                        mode = FIND_OBJECT_MODE
-                        GlobalScope.launch {
-                            while (mode == FIND_OBJECT_MODE) {
-                                if (!processing && !text2Speech.isSpeaking()){
-                                    processing = true
-                                    val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                                    text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
-                                    processing = false
-                                }
-                            }
-                        }
-
-                    }else{
-                        text2Speech.speak(translator.translate("This object can NOT be found. Try with something else",language))
-                    }
-                }
-                // Ако е казано "инструкции", казва на човека какви функционалности има приложението
-                //log("/" + lastCommand + "/");
                 if (instructionsCommand.match(lastCommand)) {
+                    if (processing){
+                        stopProcessing = true
+                    }
                     mode = WAITING_MODE
                     text2Speech.speak("",true)
                 }
                 if (stopCommand.match(lastCommand)) {
-                    log("СТОП СПРИ ")
+                    if (processing){
+                        stopProcessing = true
+                    }
                     mode = WAITING_MODE
                     text2Speech.speak(translator.translate("Mode is stopped. What is your next command?", language))
                 }
 
-                // Влиза тук когато се каже думата навигация и започва да ориентира човека какво
-                // има пред него
-                if (findAllCommand.match(lastCommand)) {
-                    mode = FIND_ALL_OBJECTS_MODE
-                    log("НАВИГИРА МЕ НАВСЯКЪДЕ")
-                    text2Speech.speak(translator.translate("Starting navigation", language))
-                    look4object = "all"
-                    GlobalScope.launch {
-                        while (mode == FIND_ALL_OBJECTS_MODE) {
-                            if (!processing && !text2Speech.isSpeaking()){
-                                processing = true
-                                val outputs = async { objectDetector.detect(textureView.bitmap!!) }
-                                text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
-                                processing = false
+                if (exitCommand.match(lastCommand)) {
+                    if (processing){
+                        stopProcessing = true
+                    }
+                    mode = WAITING_MODE
+                    System.exit(0)
+                }
+                if (!text2Speech.isSpeaking()){
+                    look4object = translator.recognizeObject(lastCommand).toString()
+                    if (findCommand.match(lastCommand)) {
+                        if (look4object != ""){
+                            text2Speech.speak(translator.translate("Starting search",language))
+                            if(mode!=FIND_OBJECT_MODE){
+                                mode = FIND_OBJECT_MODE
+                                GlobalScope.launch {
+                                    while (mode == FIND_OBJECT_MODE) {
+                                        if (!processing && !text2Speech.isSpeaking()){
+                                            processing = true
+                                            val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                                            log(outputs.await().toString())
+                                            if (!stopProcessing){
+                                                text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
+                                            }else{
+                                                stopProcessing = false
+                                            }
+                                            processing = false
+                                        }
+                                    }
+                                }
+                            }
+                        }else{
+                            text2Speech.speak(translator.translate("This object can NOT be found. Try with something else",language))
+                            if (processing){
+                                stopProcessing = true
                             }
                         }
                     }
-                }
-                // Влиза тук когато потребителят иска да излезе от програмата
-                if (exitCommand.match(lastCommand)) {
-                    mode = WAITING_MODE
-                    log("ИЗЛЕЗЕ ОТ ПРОГРАМАТА")
-                    System.exit(0)
-                }
-                if (languageCommand.match(lastCommand)) {
-                    mode = WAITING_MODE
-                    if (lastCommand.contains("българ") || lastCommand.contains("bulgarian")) {
-                        language = "bg"
-                        text2Speech.speak("Сменяне на езика на български")
-                    } else if (lastCommand.contains("англи") || lastCommand.contains("english")) {
-                        language = "en"
-                        text2Speech.speak("Changing language to english")
+
+                    if (findAllCommand.match(lastCommand)) {
+                        if (mode != FIND_ALL_OBJECTS_MODE){
+                            mode = FIND_ALL_OBJECTS_MODE
+                            text2Speech.speak(translator.translate("Starting navigation", language))
+                            look4object = "all"
+                            GlobalScope.launch {
+                                while (mode == FIND_ALL_OBJECTS_MODE) {
+                                    if (!processing && !text2Speech.isSpeaking()){
+                                        processing = true
+                                        val outputs = async { objectDetector.detect(textureView.bitmap!!) }
+                                        text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
+                                        processing = false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (languageCommand.match(lastCommand)) {
+                        mode = WAITING_MODE
+                        if (lastCommand.contains("българ") || lastCommand.contains("bulgarian")) {
+                            language = "bg"
+                            text2Speech.speak("Сменяне на езика на български")
+                        } else if (lastCommand.contains("англи") || lastCommand.contains("english")) {
+                            language = "en"
+                            text2Speech.speak("Changing language to english")
+                        }
                     }
                 }
                 speechRecognizer.startListening(recognizerIntent)
             }
 
-            override fun onPartialResults(bundle: Bundle) {
-                val matches = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-            }
-
+            override fun onPartialResults(bundle: Bundle) {}
             override fun onEvent(i: Int, bundle: Bundle) {}
         })
         speechRecognizer.startListening(recognizerIntent)
