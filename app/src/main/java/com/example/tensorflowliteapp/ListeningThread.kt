@@ -118,10 +118,8 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                                             processing = true
                                             val outputs = async { objectDetector.detect(textureView.bitmap!!) }
                                             log(outputs.await().toString())
-                                            if (!stopProcessing){
+                                            if (mode == FIND_OBJECT_MODE){
                                                 text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language, translator, look4object))
-                                            }else{
-                                                stopProcessing = false
                                             }
                                             processing = false
                                         }
@@ -148,10 +146,8 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                                         processing = true
                                         val outputs = async { objectDetector.detect(textureView.bitmap!!) }
                                         log(outputs.await().toString())
-                                        if (!stopProcessing){
+                                        if (mode == FIND_ALL_OBJECTS_MODE){
                                             text2Speech.speak(detectionResultProcessor.processResult(mode,outputs.await(),language,translator))
-                                        }else{
-                                            stopProcessing = false
                                         }
                                         processing = false
                                     }

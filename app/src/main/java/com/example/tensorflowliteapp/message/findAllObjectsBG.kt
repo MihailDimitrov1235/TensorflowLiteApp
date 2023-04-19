@@ -32,7 +32,7 @@ fun findAllObjectsBG(outputs: MutableList<Result>, translator: Translator): Stri
                     result += translator.number(brM, detectionResult.category, "bg")
                         .toString() + " " + oneOrManyBG(detectionResult.category, brM, translator) + " посредата, "
                 }
-                if (brL > 0) {
+                if (brR > 0) {
                     result += translator.number(brR, detectionResult.category, "bg")
                         .toString() + " " + oneOrManyBG(detectionResult.category, brR, translator) + " вдясно, "
                 }
