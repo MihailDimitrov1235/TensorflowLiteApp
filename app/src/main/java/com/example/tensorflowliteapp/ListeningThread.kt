@@ -129,6 +129,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
                                 }
                             }
                         }else{
+                            mode = WAITING_MODE
                             text2Speech.speak(translator.translate("This object can NOT be found. Try with something else",language))
                             if (processing){
                                 stopProcessing = true

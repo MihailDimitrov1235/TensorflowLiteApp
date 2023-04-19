@@ -110,21 +110,15 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     fun getPermission(){
-        val cameraPermision = android.Manifest.permission.CAMERA
+        val cameraPermission = android.Manifest.permission.CAMERA
         val audioRecordPermission = android.Manifest.permission.RECORD_AUDIO
-        val storagePermission = android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
-        val sensorsPermision = android.Manifest.permission.HIGH_SAMPLING_RATE_SENSORS
 
-        if( (ContextCompat.checkSelfPermission(this,cameraPermision) != PackageManager.PERMISSION_GRANTED)
-            || (ContextCompat.checkSelfPermission(this,audioRecordPermission) != PackageManager.PERMISSION_GRANTED)
-            || (ContextCompat.checkSelfPermission(this,storagePermission) != PackageManager.PERMISSION_GRANTED)
-            || (ContextCompat.checkSelfPermission(this,sensorsPermision) != PackageManager.PERMISSION_GRANTED)){
+        if( (ContextCompat.checkSelfPermission(this,cameraPermission) != PackageManager.PERMISSION_GRANTED)
+            || (ContextCompat.checkSelfPermission(this,audioRecordPermission) != PackageManager.PERMISSION_GRANTED)){
             requestPermissions(
                 arrayOf(
-                    cameraPermision,
+                    cameraPermission,
                     audioRecordPermission,
-                    storagePermission,
-                    sensorsPermision
                 ),
                 101
             )
