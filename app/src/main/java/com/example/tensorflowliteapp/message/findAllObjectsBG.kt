@@ -4,7 +4,10 @@ import android.annotation.SuppressLint
 import com.example.tensorflowliteapp.Result
 
 @SuppressLint("SuspiciousIndentation")
-fun findAllObjectsBG(outputs: MutableList<Result>, translator: Translator): String{
+fun findAllObjectsBG(
+    outputs: MutableList<Result>,
+    translator: Translator,
+): String{
     var result = "Има "
     var objects = listOf<String>()
     val counter = count(outputs,"all")

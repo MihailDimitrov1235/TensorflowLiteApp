@@ -1,8 +1,10 @@
 package com.example.tensorflowliteapp
 
+import android.hardware.Sensor
+import android.hardware.SensorEvent
 import com.example.tensorflowliteapp.message.*
 
-fun findObjectBG(outputs: MutableList<Result>, word: String, translator: Translator): String{
+fun findObjectBG(outputs: MutableList<Result>, word: String, translator: Translator, sensorEvent: SensorEvent?): String{
 
     var result = "Има "
     var counter = count(outputs,word)
@@ -18,7 +20,7 @@ fun findObjectBG(outputs: MutableList<Result>, word: String, translator: Transla
             if(detectionResult.category.equals(word)) {
                 result += translator.number(1, detectionResult.category, "bg").toString() +
                         " " + distanceCalulator.distance(detectionResult.category, size(detectionResult),"bg") + " и е "
-                result += possitionBG(detectionResult)
+                result += possitionBG(detectionResult, sensorEvent)
             }
         }
 

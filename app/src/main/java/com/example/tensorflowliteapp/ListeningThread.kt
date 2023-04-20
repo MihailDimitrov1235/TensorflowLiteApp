@@ -15,7 +15,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.util.*
 
-class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector: ObjectDetector, handler: Handler, textureView: TextureView, labels: List<String>) : Runnable{
+class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector: ObjectDetector, handler: Handler, textureView: TextureView, labels: List<String>, detectionResultProcessor: DetectionResultProcessor) : Runnable{
 
     // modes
     val WAITING_MODE = 0
@@ -25,7 +25,7 @@ class ListeningThread(context: Context, text2Speech: Text2Speech, objectDetector
 
     val context = context
     val text2Speech = text2Speech
-    val detectionResultProcessor = DetectionResultProcessor()
+    val detectionResultProcessor = detectionResultProcessor
     val translator = Translator()
     val objectDetector = objectDetector
     val textureView = textureView

@@ -21,6 +21,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.example.tensorflowliteapp.message.DetectionResultProcessor
 import org.tensorflow.lite.support.common.FileUtil
 import java.util.*
 
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     lateinit var sensorManager: SensorManager
     lateinit var textToSpeech: Text2Speech
     lateinit var listeningThread: Runnable
+    val detectionResultProcessor = DetectionResultProcessor()
 
         //camera
         lateinit var cameraManager:CameraManager
@@ -65,7 +67,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
         labels = FileUtil.loadLabels(this,"labels.txt")
         cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
-        listeningThread = ListeningThread(this, textToSpeech, objectDetector, handler, textureView, labels)
+        listeningThread = ListeningThread(this, textToSpeech, objectDetector, handler, textureView, labels, detectionResultProcessor)
 
         textureView.surfaceTextureListener = object:TextureView.SurfaceTextureListener{
             override fun onSurfaceTextureAvailable(
@@ -144,11 +146,7 @@ class MainActivity : AppCompatActivity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        if(event?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
-//            val sides = event.values[0]
-//            val updown = event.values[1]
-//            val thirdPostion = event.values[2]
-        }
+        detectionResultProcessor.sensorEvent = event
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {

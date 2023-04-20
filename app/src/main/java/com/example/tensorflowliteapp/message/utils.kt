@@ -40,13 +40,19 @@ fun count(arr: MutableList<Result>, word: String, loc: String = "all"): Int {
     return counter
 }
 
-fun possitionBG(detectionResult: Result): String {
+fun possitionBG(detectionResult: Result, sensorEvent: SensorEvent?): String {
     var gridCell : Array<Int?>
     gridCell = gridPostion(detectionResult)
-    val obj = PostProcessing()
-    var x = obj.getX()
-    var y = obj.getX()
-    var z = obj.getX()
+    var x : Float = 0F
+    var y : Float = 0F
+    var z : Float = 0F
+
+    if(sensorEvent?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
+        x = sensorEvent.values[0]
+        y = sensorEvent.values[1]
+        z = sensorEvent.values[2]
+    }
+
     var result = ""
     var InclinationCase = 0
     if(z>-0.5 && y>=0){
